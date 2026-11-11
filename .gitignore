@@ -6,3 +6,7 @@ cloudflared.exe
 *.tmp
 *.lnk
 cf_*.txt
+
+check_db.py
+env_results.txt
+current_url.txt

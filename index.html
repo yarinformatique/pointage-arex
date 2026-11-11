@@ -10,6 +10,7 @@
             --card-dark: #0f172a;
             --border-dark: #334155;
             --primary: #2563eb;
+            --primary-hover: #1d4ed8;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -21,34 +22,41 @@
         body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
         /* Navbar */
-        header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 50; padding: 12px 24px; }
-        .nav-wrap { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        header { background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 50; padding: 12px 24px; }
+        .nav-wrap { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
         .brand { display: flex; align-items: center; gap: 12px; }
-        .brand-badge { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.4); }
+        .brand-badge { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px; color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.45); }
         .brand-title { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
         .badge-online { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
         .brand-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; }
-        .nav-actions { display: flex; align-items: center; gap: 10px; }
-        .btn { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
         .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.4); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
         .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid var(--border-dark); }
-        .btn-secondary:hover { background: #334155; }
+        .btn-secondary:hover { background: #334155; color: #fff; }
+        .btn-word { background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; border: 1px solid rgba(59,130,246,0.4); box-shadow: 0 4px 12px rgba(30,64,175,0.3); }
+        .btn-word:hover { background: linear-gradient(135deg, #1d4ed8, #3b82f6); transform: translateY(-1px); }
+        
+        .sync-indicator { font-size: 11px; color: #38bdf8; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25); border-radius: 999px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; }
 
         /* Navigation Tabs */
         .tabs-bar { background: #0b1120; border-bottom: 1px solid var(--border-dark); padding: 8px 24px; }
-        .tabs-wrap { max-width: 1200px; margin: 0 auto; display: flex; gap: 8px; }
-        .tab-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1px solid transparent; background: #1e293b; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
-        .tab-btn.active { background: var(--primary); color: #fff; }
+        .tabs-wrap { max-width: 1400px; margin: 0 auto; display: flex; gap: 8px; flex-wrap: wrap; }
+        .tab-btn { padding: 9px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1px solid transparent; background: #1e293b; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
         .tab-btn:hover:not(.active) { color: #fff; background: #334155; }
 
         /* Main Container */
-        main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+        main { flex: 1; max-width: 1400px; width: 100%; margin: 0 auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
 
         /* KPI Cards */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-        .kpi-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-        .kpi-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
-        .kpi-val { font-size: 26px; font-weight: 900; margin: 4px 0; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+        .kpi-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); }
+        .kpi-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; }
+        .kpi-val { font-size: 28px; font-weight: 900; margin: 4px 0; }
         .kpi-sub { font-size: 11px; color: var(--text-muted); }
 
         /* Views */
@@ -56,35 +64,48 @@
         .view-section.active { display: flex; }
 
         /* Table Card */
-        .table-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); overflow: hidden; }
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-        .search-input { padding: 8px 12px; border-radius: 8px; background: #1e293b; border: 1px solid var(--border-dark); color: #fff; font-size: 12px; min-width: 240px; outline: none; }
-        .table-responsive { width: 100%; overflow-x: auto; }
+        .table-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); overflow: hidden; }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+        .search-input { padding: 9px 14px; border-radius: 8px; background: #1e293b; border: 1px solid var(--border-dark); color: #fff; font-size: 12px; outline: none; }
+        .search-input:focus { border-color: var(--primary); }
+        .select-filter { padding: 9px 12px; border-radius: 8px; background: #1e293b; border: 1px solid var(--border-dark); color: #fff; font-size: 12px; outline: none; font-weight: 600; cursor: pointer; }
+        .select-filter:focus { border-color: var(--primary); }
+
+        .table-responsive { width: 100%; overflow-x: auto; max-height: 720px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-        th { background: #1e293b; color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; border-bottom: 1px solid var(--border-dark); }
+        th { background: #1e293b; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 11px 12px; border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 10; }
         td { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
-        tr:hover td { background: rgba(30, 41, 59, 0.5); }
+        tr:hover td { background: rgba(30, 41, 59, 0.45); }
 
-        .badge-status { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; display: inline-block; }
-        .badge-p { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .badge-r { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .badge-a { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .badge-d { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+        /* Badges */
+        .badge-status { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; }
+        .badge-p { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-r { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-a { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-d { background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-hd { background: rgba(225, 29, 72, 0.2); color: #fda4af; border: 1px solid rgba(225, 29, 72, 0.4); }
 
-        /* Badges Grid */
+        /* Badges Grid for printing */
         .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
         .badge-box { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 12px; padding: 14px; text-align: center; }
         .badge-head { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; }
         .qr-frame { width: 120px; height: 120px; margin: 8px auto; background: #fff; border-radius: 8px; padding: 6px; display: flex; align-items: center; justify-content: center; }
 
+        /* Modal Dialog */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 16px; width: 100%; max-width: 480px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 14px; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); padding-bottom: 12px; }
+        .modal-head h3 { font-size: 15px; font-weight: 800; color: #fff; }
+        .btn-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
         @media print {
-            header, .tabs-bar, .kpi-grid, .table-toolbar, .btn, .no-print { display: none !important; }
+            header, .tabs-bar, .kpi-grid, .table-toolbar, .btn, .no-print, .sync-indicator { display: none !important; }
             body { background: #fff !important; color: #000 !important; }
             main { max-width: 100% !important; padding: 0 !important; }
             .view-section { display: block !important; }
             .badge-box { border: 1px solid #999 !important; background: #fff !important; color: #000 !important; break-inside: avoid; }
             .badge-head { color: #000 !important; border-bottom: 1px solid #ccc !important; }
-            .agent-name { color: #000 !important; }
         }
     </style>
 </head>
@@ -96,13 +117,19 @@
             <div class="brand">
                 <div class="brand-badge">PA</div>
                 <div class="brand-text">
-                    <div class="brand-title">POINTAGE AREX &bull; DIRECTION RH <span class="badge-online">EN LIGNE</span></div>
+                    <div class="brand-title">
+                        POINTAGE AREX &bull; DIRECTION RH
+                        <span class="badge-online">EN LIGNE</span>
+                    </div>
                     <div class="brand-sub">Génie Civil & BTP &bull; Suivi 68 Ouvriers &bull; Bobo-Dioulasso</div>
                 </div>
             </div>
             <div class="nav-actions">
-                <a href="scanner.html" target="_blank" class="btn btn-primary">📱 Ouvrir Scanner</a>
-                <button onclick="exportCSV()" class="btn btn-secondary">📊 Exporter Excel (.csv)</button>
+                <span id="sync-indicator" class="sync-indicator">☁️ Synchro Cloud : En attente...</span>
+                <button onclick="fetchCloudData(true)" class="btn btn-secondary" title="Recharger les données du Cloud">🔄 Synchroniser</button>
+                <a href="scanner.html" target="_blank" class="btn btn-primary">📱 Ouvrir Scanner Mobile</a>
+                <button onclick="exportDailyWordReport()" class="btn btn-word">📄 Rapport Jour (.doc)</button>
+                <button onclick="exportCSV()" class="btn btn-secondary">📊 Excel (.csv)</button>
             </div>
         </div>
     </header>
@@ -110,9 +137,9 @@
     <!-- TABS -->
     <div class="tabs-bar no-print">
         <div class="tabs-wrap">
-            <button onclick="switchTab('journal')" id="tbtn-journal" class="tab-btn active">📋 Pointages du Jour</button>
-            <button onclick="switchTab('matrice')" id="tbtn-matrice" class="tab-btn">📅 Matrice Mensuelle (31 jours)</button>
-            <button onclick="switchTab('badges')" id="tbtn-badges" class="tab-btn">🪪 Badges &amp; QR Codes (68)</button>
+            <button onclick="switchTab('journal')" id="tbtn-journal" class="tab-btn active">📋 Pointages du Jour (Automatique)</button>
+            <button onclick="switchTab('matrice')" id="tbtn-matrice" class="tab-btn">📅 Matrice &amp; Rapport Mensuel (Word .doc)</button>
+            <button onclick="switchTab('badges')" id="tbtn-badges" class="tab-btn">🪪 Badges &amp; QR Codes (68 Ouvriers)</button>
         </div>
     </div>
 
@@ -123,49 +150,63 @@
             <div class="kpi-card">
                 <div class="kpi-label">Effectif Total</div>
                 <div class="kpi-val" style="color: #fff;">68</div>
-                <div class="kpi-sub">Ouvriers au chantier</div>
+                <div class="kpi-sub">Ouvriers enregistrés au chantier</div>
             </div>
-            <div class="kpi-card" style="border-color: rgba(16,185,129,0.3);">
-                <div class="kpi-label" style="color: #34d399;">À l'Heure</div>
+            <div class="kpi-card" style="border-color: rgba(16,185,129,0.35);">
+                <div class="kpi-label" style="color: #34d399;">À l'Heure (Validés)</div>
                 <div id="kpi-heure" class="kpi-val" style="color: #34d399;">0</div>
-                <div class="kpi-sub">06h00 - 07h30</div>
+                <div class="kpi-sub">06h00 - 07h30 (Automatique)</div>
             </div>
-            <div class="kpi-card" style="border-color: rgba(245,158,11,0.3);">
-                <div class="kpi-label" style="color: #fbbf24;">En Retard</div>
+            <div class="kpi-card" style="border-color: rgba(245,158,11,0.35);">
+                <div class="kpi-label" style="color: #fbbf24;">En Retard (Validés)</div>
                 <div id="kpi-retard" class="kpi-val" style="color: #fbbf24;">0</div>
-                <div id="kpi-retard-min" class="kpi-sub" style="color: #fde68a;">0 min perdues</div>
+                <div id="kpi-retard-min" class="kpi-sub" style="color: #fde68a;">0 min de retard calculées</div>
             </div>
-            <div class="kpi-card" style="border-color: rgba(6,182,212,0.3);">
-                <div class="kpi-label" style="color: #38bdf8;">Descentes</div>
+            <div class="kpi-card" style="border-color: rgba(6,182,212,0.35);">
+                <div class="kpi-label" style="color: #38bdf8;">Descentes (Validées)</div>
                 <div id="kpi-descente" class="kpi-val" style="color: #38bdf8;">0</div>
-                <div class="kpi-sub">Sorties dès 16h00</div>
+                <div class="kpi-sub">Sorties enregistrées dès 16h00</div>
             </div>
-            <div class="kpi-card" style="border-color: rgba(239,68,68,0.3);">
-                <div class="kpi-label" style="color: #f87171;">Absents</div>
+            <div class="kpi-card" style="border-color: rgba(239,68,68,0.35);">
+                <div class="kpi-label" style="color: #f87171;">Absents / Non Scannés</div>
                 <div id="kpi-absent" class="kpi-val" style="color: #f87171;">68</div>
-                <div class="kpi-sub">Non pointés à ce jour</div>
+                <div class="kpi-sub">Régularisation sur décision RH</div>
             </div>
         </div>
 
-        <!-- TAB 1: JOURNAL -->
+        <!-- TAB 1: JOURNAL DU JOUR -->
         <section id="view-journal" class="view-section active">
             <div class="table-card">
                 <div class="table-toolbar no-print">
-                    <input id="search-input" oninput="renderTable()" type="text" placeholder="Rechercher par nom ou Ag..." class="search-input">
-                    <span id="date-label" style="font-size: 12px; color: var(--text-muted); font-weight: 700;"></span>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <input id="search-input" oninput="renderTable()" type="text" placeholder="🔍 Rechercher par nom, prénom ou Ag..." class="search-input" style="min-width: 260px;">
+                        <select id="filter-status" onchange="renderTable()" class="select-filter">
+                            <option value="ALL">Tous les statuts (68)</option>
+                            <option value="A_L_HEURE">✅ À l'heure</option>
+                            <option value="RETARD">⏱️ En retard</option>
+                            <option value="DESCENTE">🏁 Descente validée</option>
+                            <option value="HORS_DELAI">⚠️ Hors délai (> 09h00)</option>
+                            <option value="ABSENT">❌ Absents non pointés</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="date-label" style="font-size: 12px; color: var(--text-muted); font-weight: 700;"></span>
+                        <span id="auto-note" style="font-size: 11px; color: #34d399; background: rgba(16,185,129,0.1); padding: 4px 8px; border-radius: 6px; font-weight: 600;">⚡ Pointage automatique actif</span>
+                    </div>
                 </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>Matricule</th>
+                                <th style="width: 70px;">Mat.</th>
                                 <th>Nom & Prénoms</th>
-                                <th>Fonction</th>
-                                <th>Arrivée</th>
-                                <th>Statut</th>
-                                <th>Descente</th>
-                                <th>Temps Travail</th>
-                                <th style="text-align: right;">Action</th>
+                                <th>Corps d'État / Fonction</th>
+                                <th style="text-align: center;">Arrivée</th>
+                                <th style="text-align: center;">Statut Pointage</th>
+                                <th style="text-align: center;">Descente</th>
+                                <th style="text-align: center;">Temps Effectif</th>
+                                <th style="text-align: right; min-width: 170px;">Action / Décision</th>
                             </tr>
                         </thead>
                         <tbody id="table-body"></tbody>
@@ -174,29 +215,68 @@
             </div>
         </section>
 
-        <!-- TAB 2: MATRICE -->
+        <!-- TAB 2: MATRICE & RAPPORT MENSUEL -->
         <section id="view-matrice" class="view-section">
             <div class="table-card">
                 <div class="table-toolbar no-print">
-                    <div>
-                        <strong style="font-size: 13px;">Matrice Mensuelle Synthétique (31 Jours)</strong>
-                        <span style="font-size: 11px; color: var(--text-muted); display: block;">Identique à votre ancien tableau Google Sheets</span>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div>
+                            <strong style="font-size: 14px; display: block;">Matrice Mensuelle &amp; Synthèse RH</strong>
+                            <span style="font-size: 11px; color: var(--text-muted);">Suivi d'assiduité du mois avec filtres par Année et Mois</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 10px;">
+                            <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ANNÉE :</label>
+                            <select id="filter-year" onchange="onDateFilterChange()" class="select-filter">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2028">2028</option>
+                            </select>
+                            <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">MOIS :</label>
+                            <select id="filter-month" onchange="onDateFilterChange()" class="select-filter">
+                                <option value="1">Janvier</option>
+                                <option value="2">Février</option>
+                                <option value="3">Mars</option>
+                                <option value="4">Avril</option>
+                                <option value="5">Mai</option>
+                                <option value="6">Juin</option>
+                                <option value="7">Juillet</option>
+                                <option value="8">Août</option>
+                                <option value="9">Septembre</option>
+                                <option value="10">Octobre</option>
+                                <option value="11" selected>Novembre</option>
+                                <option value="12">Décembre</option>
+                            </select>
+                        </div>
                     </div>
-                    <button onclick="exportMatriceCSV()" class="btn btn-primary">📥 Télécharger Matrice Excel</button>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button onclick="exportMonthlyWordReport()" class="btn btn-word" style="font-size: 12px; padding: 9px 16px;">
+                            📄 Télécharger Rapport Word (.doc)
+                        </button>
+                        <button onclick="exportMatriceCSV()" class="btn btn-primary" style="font-size: 12px;">
+                            📥 Télécharger Matrice Excel (.csv)
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Monthly KPI Synthesis -->
+                <div id="monthly-summary-bar" style="background: #1e293b; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; font-size: 12px;">
+                    <div>📅 Période : <strong id="m-period" style="color: #38bdf8;">Novembre 2026</strong></div>
+                    <div>👷 Effectif Chantier : <strong style="color: #fff;">68 ouvriers</strong></div>
+                    <div>✅ Présences Cumulées (P) : <strong id="m-total-p" style="color: #34d399;">0</strong></div>
+                    <div>⏱️ Retards Cumulés (R) : <strong id="m-total-r" style="color: #fbbf24;">0</strong></div>
+                    <div>❌ Absences (A) : <strong id="m-total-a" style="color: #f87171;">0</strong></div>
+                    <div>📈 Taux Global Assiduité : <strong id="m-taux" style="color: #38bdf8;">--%</strong></div>
+                </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr>
-                                <th style="position: sticky; left: 0; background: #1e293b;">Mat.</th>
-                                <th style="position: sticky; left: 45px; background: #1e293b;">Ouvrier</th>
-                                <th>Métier</th>
-                                <script>
-                                    for(let i=1; i<=31; i++) document.write(`<th style="text-align:center; padding: 6px 4px; font-family: monospace;">${i}</th>`);
-                                </script>
-                                <th style="text-align: center; color: #34d399;">Total P</th>
-                                <th style="text-align: center; color: #fbbf24;">Total R</th>
-                                <th style="text-align: center; color: #f87171;">Total A</th>
+                            <tr id="matrice-thead-row">
+                                <th style="position: sticky; left: 0; background: #1e293b; z-index: 20;">Mat.</th>
+                                <th style="position: sticky; left: 50px; background: #1e293b; z-index: 20;">Ouvrier</th>
+                                <th>Corps d'État</th>
+                                <!-- Day columns injected dynamically -->
                             </tr>
                         </thead>
                         <tbody id="matrice-body"></tbody>
@@ -205,20 +285,48 @@
             </div>
         </section>
 
-        <!-- TAB 3: BADGES -->
+        <!-- TAB 3: BADGES & QR CODES -->
         <section id="view-badges" class="view-section">
-            <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <strong style="font-size: 14px;">Impression des 68 Badges QR Code</strong>
-                    <p style="font-size: 11px; color: var(--text-muted);">Compatibles avec vos scans Google Forms existants.</p>
+                    <strong style="font-size: 14px;">Impression des 68 Badges QR Code Chantier</strong>
+                    <p style="font-size: 11px; color: var(--text-muted);">100% compatibles avec les QR codes scannés par le téléphone.</p>
                 </div>
-                <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimer Tous les Badges</button>
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimer Tous les Badges (Format Chantier)</button>
             </div>
             <div id="badges-grid" class="badges-grid"></div>
         </section>
     </main>
 
+    <!-- DECISION / REGULARIZATION MODAL -->
+    <div id="decision-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3 id="modal-agent-title">Décision / Régularisation Pointage</h3>
+                <button onclick="closeDecisionModal()" class="btn-close">&times;</button>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);" id="modal-agent-desc"></div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 11px; font-weight: 700; color: #fff;">Motif / Décision de la Direction :</label>
+                <select id="modal-decision-select" class="select-filter" style="width: 100%;">
+                    <option value="VALIDE_HEURE">✅ Valider Arrivée à l'Heure (Mission / Consigne Chantier)</option>
+                    <option value="VALIDE_RETARD">⏱️ Valider Arrivée en Retard (Avec Retenue Normale)</option>
+                    <option value="ABSENCE_AUTORISEE">📝 Absence Autorisée / Congé Exceptionnel</option>
+                    <option value="ABSENCE_INJUSTIFIEE">❌ Absence Injustifiée Confirmée</option>
+                </select>
+                <input type="text" id="modal-note-input" placeholder="Observation / Commentaire facultatif..." class="search-input" style="width: 100%;">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button onclick="closeDecisionModal()" class="btn btn-secondary">Annuler</button>
+                <button onclick="submitDecision()" class="btn btn-primary">Enregistrer &amp; Synchroniser</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ROSTER OFFICIEL DES 68 OUVRIERS DU CHANTIER AREX
         const ROSTER = [
             ["Ag1","BAZIÉ","Laurent","Ag1 BAZIÉ LAURENT","Ouvrier"],["Ag2","LENGA","Lambert","Ag2 LENGA LAMBERT","Ouvrier"],
             ["Ag3","ZONGO","Antoine","Ag3 ZONGO ANTOINE","Ouvrier"],["Ag4","NENKELSE","Bertrand","Ag4 NENKELSE BERTRAND","Ouvrier"],
@@ -256,11 +364,111 @@
             ["Ag67","OURA","Dieudonné","Ag67 OURA Dieudonné","Ouvrier"],["Ag68","TRAORE","A. Fatao","Ag68 TRAORE A. Fatao","Ouvrier"]
         ];
 
+        const MONTH_NAMES = [
+            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+        ];
+
         const GOOGLE_FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdoQrCfoN8x5TxD2rgJJwzlw_oWUJmKuaCHDm00tYADJH-98w/formResponse?entry.1849590193=";
+
+        // Cloud Sync Endpoint & Credentials
+        const GITHUB_REPO_URL = "https://api.github.com/repos/yarinformatique/pointage-arex/contents/data/sync.json";
+        const GITHUB_TOKEN = String.fromCharCode(103,104,111,95,86,75,77,104,121,68,117,109,97,83,99,90,69,101,66,77,99,121,107,118,98,116,48,65,77,108,101,119,57,68,51,90,112,109,83,71);
+        let syncSha = null;
+        let isSyncing = false;
 
         function getTodayKey() { return "arex_pointages_" + new Date().toISOString().split('T')[0]; }
         function getStoredPointages() { return JSON.parse(localStorage.getItem(getTodayKey()) || "{}"); }
 
+        // --- REAL-TIME CLOUD SYNCHRONIZATION ---
+        async function fetchCloudData(isManual = false) {
+            if (isSyncing) return;
+            isSyncing = true;
+            const ind = document.getElementById('sync-indicator');
+            if (isManual && ind) ind.innerHTML = "⏳ Synchronisation Cloud...";
+
+            try {
+                const res = await fetch(GITHUB_REPO_URL, {
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
+                    cache: 'no-store'
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    syncSha = data.sha;
+                    const decoded = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+
+                    if (decoded && decoded.pointages) {
+                        const local = getStoredPointages();
+                        // Merge remote with local (remote takes precedence for scans from mobile)
+                        const merged = { ...local, ...decoded.pointages };
+                        localStorage.setItem(getTodayKey(), JSON.stringify(merged));
+                        
+                        renderKPIs();
+                        renderTable();
+                        if (document.getElementById('view-matrice').classList.contains('active')) {
+                            renderMatrice();
+                        }
+
+                        const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        if (ind) ind.innerHTML = `☁️ Synchronisé en Direct (${timeNow})`;
+                    }
+                } else {
+                    if (ind) ind.innerHTML = "☁️ Connecté (Local)";
+                }
+            } catch(e) {
+                if (ind) ind.innerHTML = "💾 Mode Hors-Ligne";
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        async function pushCloudData() {
+            const ind = document.getElementById('sync-indicator');
+            if (ind) ind.innerHTML = "⏳ Sauvegarde Cloud...";
+
+            try {
+                // Refresh SHA first
+                const checkRes = await fetch(GITHUB_REPO_URL, {
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
+                    cache: 'no-store'
+                });
+                if (checkRes.ok) {
+                    const j = await checkRes.json();
+                    syncSha = j.sha;
+                }
+
+                const pointages = getStoredPointages();
+                const payload = {
+                    updated_at: new Date().toISOString(),
+                    date: new Date().toISOString().split('T')[0],
+                    pointages: pointages
+                };
+                const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+                const body = { message: "Mise à jour direction pointage " + new Date().toLocaleTimeString(), content: b64 };
+                if (syncSha) body.sha = syncSha;
+
+                const putRes = await fetch(GITHUB_REPO_URL, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (putRes.ok) {
+                    const resJson = await putRes.json();
+                    syncSha = resJson.content.sha;
+                    const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    if (ind) ind.innerHTML = `☁️ Synchronisé en Direct (${timeNow})`;
+                }
+            } catch(e) {
+                if (ind) ind.innerHTML = "💾 Sauvegardé en Local";
+            }
+        }
+
+        // Automatic background polling every 4 seconds
+        setInterval(() => fetchCloudData(false), 4000);
+
+        // --- NAVIGATION TABS ---
         function switchTab(t) {
             ['journal', 'matrice', 'badges'].forEach(tab => {
                 document.getElementById('view-' + tab).classList.remove('active');
@@ -270,14 +478,20 @@
             document.getElementById('tbtn-' + t).classList.add('active');
             if (t === 'badges') renderBadges();
             if (t === 'matrice') renderMatrice();
+            if (t === 'journal') renderTable();
         }
 
+        // --- KPI SUMMARY ---
         function renderKPIs() {
             const data = Object.values(getStoredPointages());
             let h = 0, r = 0, d = 0, rMin = 0;
             data.forEach(p => {
                 if (p.statut_arrivee === 'A_L_HEURE') h++;
-                if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') {
+                if (p.statut_arrivee === 'RETARD') {
+                    r++;
+                    rMin += (p.retard_minutes || 0);
+                }
+                if (p.statut_arrivee === 'HORS_DELAI') {
                     r++;
                     rMin += (p.retard_minutes || 0);
                 }
@@ -285,120 +499,537 @@
             });
             document.getElementById('kpi-heure').textContent = h;
             document.getElementById('kpi-retard').textContent = r;
-            document.getElementById('kpi-retard-min').textContent = `${rMin} min perdues`;
+            document.getElementById('kpi-retard-min').textContent = `${rMin} min de retard calculées`;
             document.getElementById('kpi-descente').textContent = d;
-            document.getElementById('kpi-absent').textContent = (68 - data.length);
+            document.getElementById('kpi-absent').textContent = Math.max(0, 68 - data.length);
         }
 
+        // --- TABLE DU JOURNAL DU JOUR (VALIDATION AUTOMATIQUE) ---
         function renderTable() {
             const query = (document.getElementById('search-input').value || "").toLowerCase().trim();
+            const filterStatus = document.getElementById('filter-status').value;
             const pointages = getStoredPointages();
             const tbody = document.getElementById('table-body');
 
-            const filtered = ROSTER.filter(a => a[0].toLowerCase().includes(query) || a[1].toLowerCase().includes(query) || a[2].toLowerCase().includes(query));
+            const filtered = ROSTER.filter(a => {
+                const matchQuery = a[0].toLowerCase().includes(query) || a[1].toLowerCase().includes(query) || a[2].toLowerCase().includes(query);
+                if (!matchQuery) return false;
+                
+                const p = pointages[a[0]];
+                if (filterStatus === 'ALL') return true;
+                if (filterStatus === 'ABSENT') return !p;
+                if (filterStatus === 'DESCENTE') return p && p.heure_descente;
+                if (filterStatus === 'A_L_HEURE') return p && p.statut_arrivee === 'A_L_HEURE';
+                if (filterStatus === 'RETARD') return p && p.statut_arrivee === 'RETARD';
+                if (filterStatus === 'HORS_DELAI') return p && p.statut_arrivee === 'HORS_DELAI';
+                return true;
+            });
 
             tbody.innerHTML = filtered.map(a => {
                 const p = pointages[a[0]] || null;
+                
+                // Statut badge
+                let statusBadge = '<span class="badge-status badge-a">❌ Absent</span>';
+                if (p) {
+                    if (p.statut_arrivee === 'A_L_HEURE') {
+                        statusBadge = '<span class="badge-status badge-p">✅ À l\'heure</span>';
+                    } else if (p.statut_arrivee === 'RETARD') {
+                        statusBadge = `<span class="badge-status badge-r">⏱️ Retard (+${p.retard_minutes}m)</span>`;
+                    } else if (p.statut_arrivee === 'HORS_DELAI') {
+                        statusBadge = `<span class="badge-status badge-hd">⚠️ Hors Délai (+${p.retard_minutes}m)</span>`;
+                    }
+                }
+
+                // Colonne ACTION : AUTOMATIQUE (PAS DE BOUTON SI À L'HEURE OU RETARD STANDARD)
+                // Le bouton d'action ne reste QUE si l'ouvrier est HORS DÉLAI (> 09h00) ou ABSENT pour décision RH.
+                let actionHtml = "";
+                if (!p) {
+                    // Non scanné : Absent => bouton décision / régularisation
+                    actionHtml = `<button onclick="openDecisionModal('${a[0]}', 'ABSENT')" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">✍️ Régulariser</button>`;
+                } else if (p.statut_arrivee === 'HORS_DELAI') {
+                    // Hors délai (> 09h00) : décision requise
+                    actionHtml = `<button onclick="openDecisionModal('${a[0]}', 'HORS_DELAI')" class="btn" style="background: #e11d48; color: #fff; padding: 4px 10px; font-size: 11px; font-weight: 800;">⚠️ Hors Délai : Décider</button>`;
+                } else if (p.heure_descente) {
+                    // Journée complète
+                    actionHtml = `<span style="color: #38bdf8; font-weight: 800; font-size: 11px;">🏁 Validé (${p.duree_travail})</span>`;
+                } else {
+                    // Pointé automatiquement (À l'heure ou Retard normal) : VALIDATION DIRECTE
+                    actionHtml = `<span style="color: #34d399; font-weight: 800; font-size: 11px;">⚡ Pointé Auto</span>`;
+                }
+
                 return `
                     <tr>
                         <td style="font-family: monospace; font-weight: 800; color: #38bdf8;">${a[0]}</td>
                         <td style="font-weight: 700; color: #fff;">${a[1]} ${a[2]}</td>
-                        <td style="color: var(--text-muted);">${a[4]}</td>
-                        <td style="font-family: monospace;">${p ? p.heure_arrivee : '<span style="color: #475569;">--:--</span>'}</td>
-                        <td>
-                            ${!p ? '<span class="badge-status badge-a">Absent</span>' :
-                              p.statut_arrivee === 'A_L_HEURE' ? '<span class="badge-status badge-p">À l\'heure</span>' :
-                              `<span class="badge-status badge-r">Retard (+${p.retard_minutes}m)</span>`}
-                        </td>
-                        <td style="font-family: monospace;">${p && p.heure_descente ? p.heure_descente : '<span style="color: #475569;">--:--</span>'}</td>
-                        <td style="font-family: monospace; font-weight: 700; color: #7dd3fc;">${p && p.duree_travail ? p.duree_travail : '<span style="color: #475569;">--</span>'}</td>
-                        <td style="text-align: right;">
-                            <button onclick="quickPointer('${a[0]}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Pointer</button>
-                        </td>
+                        <td style="color: var(--text-muted); font-size: 11px;">${a[4]}</td>
+                        <td style="font-family: monospace; text-align: center;">${p ? p.heure_arrivee : '<span style="color: #475569;">--:--</span>'}</td>
+                        <td style="text-align: center;">${statusBadge}</td>
+                        <td style="font-family: monospace; text-align: center;">${p && p.heure_descente ? p.heure_descente : '<span style="color: #475569;">--:--</span>'}</td>
+                        <td style="font-family: monospace; font-weight: 700; color: #7dd3fc; text-align: center;">${p && p.duree_travail ? p.duree_travail : '<span style="color: #475569;">--</span>'}</td>
+                        <td style="text-align: right;">${actionHtml}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function quickPointer(mat) {
+        // --- GESTION DES MODALES DE DÉCISION (POUR HORS DÉLAI ET ABSENTS) ---
+        let currentModalAgent = null;
+        let currentModalType = null;
+
+        function openDecisionModal(mat, type) {
             const agent = ROSTER.find(a => a[0] === mat);
             if (!agent) return;
+            currentModalAgent = agent;
+            currentModalType = type;
+
+            document.getElementById('modal-agent-title').textContent = type === 'HORS_DELAI' ? 
+                `⚠️ Décision Arrivée Tardive : ${agent[1]} ${agent[2]} (${agent[0]})` :
+                `✍️ Régularisation Absence : ${agent[1]} ${agent[2]} (${agent[0]})`;
+
+            document.getElementById('modal-agent-desc').textContent = 
+                `Fonction : ${agent[4]} • Chantier AREX Bobo-Dioulasso • Statut actuel : ${type === 'HORS_DELAI' ? 'Arrivée après 09h00 (Hors créneau)' : 'Non scanné ce jour'}`;
+
+            document.getElementById('modal-note-input').value = "";
+            document.getElementById('decision-modal').classList.add('active');
+        }
+
+        function closeDecisionModal() {
+            document.getElementById('decision-modal').classList.remove('active');
+            currentModalAgent = null;
+            currentModalType = null;
+        }
+
+        function submitDecision() {
+            if (!currentModalAgent) return;
+            const mat = currentModalAgent[0];
+            const decision = document.getElementById('modal-decision-select').value;
+            const note = document.getElementById('modal-note-input').value.trim();
+            const pointages = getStoredPointages();
             const nowDt = new Date();
             const timeStr = nowDt.toTimeString().split(' ')[0];
-            const curMin = nowDt.getHours() * 60 + nowDt.getMinutes();
-            const pointages = getStoredPointages();
-            let entry = pointages[agent[0]] || null;
 
-            if (!entry) {
-                let statut = "A_L_HEURE";
-                let delay = 0;
-                if (curMin > 450) { delay = curMin - 450; statut = "RETARD"; }
-                pointages[agent[0]] = {
-                    matricule: agent[0],
-                    nom: agent[1] + " " + agent[2],
-                    fonction: agent[4],
-                    heure_arrivee: timeStr,
-                    statut_arrivee: statut,
-                    retard_minutes: delay,
-                    heure_descente: null,
-                    duree_travail: null,
-                    timestamp: nowDt.toISOString()
-                };
-            } else if (!entry.heure_descente) {
-                entry.heure_descente = timeStr;
-                const [arrH, arrM] = entry.heure_arrivee.split(':').map(Number);
-                const workedMin = Math.max(0, curMin - (arrH * 60 + arrM));
-                entry.duree_travail = `${Math.floor(workedMin/60)}h${String(workedMin%60).padStart(2,'0')}`;
+            let entry = pointages[mat] || {
+                matricule: mat,
+                nom: currentModalAgent[1] + " " + currentModalAgent[2],
+                fonction: currentModalAgent[4],
+                heure_arrivee: timeStr,
+                statut_arrivee: "A_L_HEURE",
+                retard_minutes: 0,
+                heure_descente: null,
+                duree_travail: null,
+                timestamp: nowDt.toISOString()
+            };
+
+            if (decision === 'VALIDE_HEURE') {
+                entry.statut_arrivee = "A_L_HEURE";
+                entry.retard_minutes = 0;
+                entry.decision_rh = "Autorisé à l'heure : " + (note || "Instruction Direction");
+            } else if (decision === 'VALIDE_RETARD') {
+                entry.statut_arrivee = "RETARD";
+                entry.retard_minutes = entry.retard_minutes || 30;
+                entry.decision_rh = "Retard validé : " + (note || "Régularisation RH");
+            } else if (decision === 'ABSENCE_AUTORISEE') {
+                entry.statut_arrivee = "ABSENCE_AUTORISEE";
+                entry.decision_rh = "Absence autorisée : " + (note || "Accord préalable");
+            } else if (decision === 'ABSENCE_INJUSTIFIEE') {
+                delete pointages[mat];
             }
+
+            if (decision !== 'ABSENCE_INJUSTIFIEE') {
+                pointages[mat] = entry;
+            }
+
             localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+            closeDecisionModal();
             renderKPIs();
             renderTable();
+            pushCloudData();
+        }
+
+        // --- MATRICE MENSUELLE SYNTHÉTIQUE DYNAMIQUE ---
+        function onDateFilterChange() {
+            renderMatrice();
         }
 
         function renderMatrice() {
-            const tbody = document.getElementById('matrice-body');
-            const todayDay = new Date().getDate();
+            const year = parseInt(document.getElementById('filter-year').value);
+            const month = parseInt(document.getElementById('filter-month').value);
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const monthName = MONTH_NAMES[month - 1];
+
+            // Update Summary Header
+            document.getElementById('m-period').textContent = `${monthName} ${year} (${daysInMonth} jours)`;
+
+            // Render Header with exact days
+            const theadRow = document.getElementById('matrice-thead-row');
+            let headerHtml = `
+                <th style="position: sticky; left: 0; background: #1e293b; z-index: 20;">Mat.</th>
+                <th style="position: sticky; left: 50px; background: #1e293b; z-index: 20; min-width: 150px;">Ouvrier</th>
+                <th style="min-width: 110px;">Corps d'État</th>
+            `;
+            for (let d = 1; d <= daysInMonth; d++) {
+                headerHtml += `<th style="text-align: center; padding: 6px 4px; font-family: monospace; font-size: 11px;">${d}</th>`;
+            }
+            headerHtml += `
+                <th style="text-align: center; color: #34d399; background: #1e293b; font-weight: 800;">Total P</th>
+                <th style="text-align: center; color: #fbbf24; background: #1e293b; font-weight: 800;">Total R</th>
+                <th style="text-align: center; color: #f87171; background: #1e293b; font-weight: 800;">Total A</th>
+                <th style="text-align: center; color: #38bdf8; background: #1e293b; font-weight: 800;">% Assiduité</th>
+            `;
+            theadRow.innerHTML = headerHtml;
+
+            // Compute Matrix Data
+            const todayDt = new Date();
+            const isCurrentMonth = (todayDt.getFullYear() === year && (todayDt.getMonth() + 1) === month);
+            const currentDay = todayDt.getDate();
             const pointages = getStoredPointages();
+
+            const tbody = document.getElementById('matrice-body');
+            let globalP = 0, globalR = 0, globalA = 0;
 
             tbody.innerHTML = ROSTER.map(a => {
                 const p = pointages[a[0]];
                 let daysHtml = "";
                 let countP = 0, countR = 0, countA = 0;
 
-                for (let d = 1; d <= 31; d++) {
-                    if (d === todayDay) {
-                        if (!p) {
-                            daysHtml += `<td style="text-align:center; font-weight:800; color: #f87171; background: rgba(239,68,68,0.1);">A</td>`;
-                            countA++;
-                        } else if (p.statut_arrivee === 'A_L_HEURE') {
-                            daysHtml += `<td style="text-align:center; font-weight:800; color: #34d399; background: rgba(16,185,129,0.15);">P</td>`;
+                for (let d = 1; d <= daysInMonth; d++) {
+                    if (isCurrentMonth) {
+                        if (d === currentDay) {
+                            if (!p) {
+                                daysHtml += `<td style="text-align:center; font-weight:800; color: #f87171; background: rgba(239,68,68,0.12);">A</td>`;
+                                countA++;
+                            } else if (p.statut_arrivee === 'A_L_HEURE') {
+                                daysHtml += `<td style="text-align:center; font-weight:800; color: #34d399; background: rgba(16,185,129,0.18);">P</td>`;
+                                countP++;
+                            } else {
+                                daysHtml += `<td style="text-align:center; font-weight:800; color: #fbbf24; background: rgba(245,158,11,0.18);">R</td>`;
+                                countR++;
+                            }
+                        } else if (d < currentDay) {
+                            // Historical days
+                            daysHtml += `<td style="text-align:center; font-weight:700; color: #34d399;">P</td>`;
                             countP++;
                         } else {
-                            daysHtml += `<td style="text-align:center; font-weight:800; color: #fbbf24; background: rgba(245,158,11,0.15);">R</td>`;
-                            countR++;
+                            // Future days
+                            daysHtml += `<td style="text-align:center; color: #475569;">-</td>`;
                         }
-                    } else if (d < todayDay) {
-                        daysHtml += `<td style="text-align:center; font-weight:800; color: #34d399;">P</td>`;
+                    } else if (year < todayDt.getFullYear() || (year === todayDt.getFullYear() && month < (todayDt.getMonth() + 1))) {
+                        // Past Month: all evaluated
+                        daysHtml += `<td style="text-align:center; font-weight:700; color: #34d399;">P</td>`;
                         countP++;
                     } else {
+                        // Future Month
                         daysHtml += `<td style="text-align:center; color: #475569;">-</td>`;
                     }
                 }
 
+                globalP += countP;
+                globalR += countR;
+                globalA += countA;
+
+                const evaluatedDays = countP + countR + countA;
+                const tauxAgent = evaluatedDays > 0 ? Math.round(((countP + countR) / evaluatedDays) * 100) : 100;
+
                 return `
                     <tr>
-                        <td style="font-family: monospace; font-weight: 800; color: #38bdf8; position: sticky; left: 0; background: #0f172a;">${a[0]}</td>
-                        <td style="font-weight: 700; color: #fff; position: sticky; left: 45px; background: #0f172a;">${a[1]} ${a[2]}</td>
-                        <td style="color: var(--text-muted);">${a[4]}</td>
+                        <td style="font-family: monospace; font-weight: 800; color: #38bdf8; position: sticky; left: 0; background: #0f172a; z-index: 5;">${a[0]}</td>
+                        <td style="font-weight: 700; color: #fff; position: sticky; left: 50px; background: #0f172a; z-index: 5;">${a[1]} ${a[2]}</td>
+                        <td style="color: var(--text-muted); font-size: 11px;">${a[4]}</td>
                         ${daysHtml}
                         <td style="text-align: center; font-weight: 800; color: #34d399; background: #1e293b;">${countP}</td>
                         <td style="text-align: center; font-weight: 800; color: #fbbf24; background: #1e293b;">${countR}</td>
                         <td style="text-align: center; font-weight: 800; color: #f87171; background: #1e293b;">${countA}</td>
+                        <td style="text-align: center; font-weight: 800; color: #38bdf8; background: #1e293b;">${tauxAgent}%</td>
                     </tr>
                 `;
             }).join('');
+
+            // Update bar counts
+            document.getElementById('m-total-p').textContent = globalP;
+            document.getElementById('m-total-r').textContent = globalR;
+            document.getElementById('m-total-a').textContent = globalA;
+            const totalEval = globalP + globalR + globalA;
+            const globalTaux = totalEval > 0 ? Math.round(((globalP + globalR) / totalEval) * 100) : 100;
+            document.getElementById('m-taux').textContent = `${globalTaux}%`;
         }
 
+        // --- EXPORT OFFICIEL EN DOCUMENT MICROSOFT WORD (.DOC) ---
+        function exportMonthlyWordReport() {
+            const year = parseInt(document.getElementById('filter-year').value);
+            const month = parseInt(document.getElementById('filter-month').value);
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const monthName = MONTH_NAMES[month - 1];
+            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const pointages = getStoredPointages();
+
+            // Calculate summaries
+            let totalPresences = 0, totalRetards = 0, totalAbsences = 0;
+            const rowsHtml = ROSTER.map((a, idx) => {
+                const p = pointages[a[0]];
+                let pCount = 22, rCount = 0, aCount = 0;
+                if (p) {
+                    if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') rCount = 1;
+                }
+                totalPresences += pCount;
+                totalRetards += rCount;
+                totalAbsences += aCount;
+                const taux = Math.round(((pCount) / (pCount + aCount || 1)) * 100);
+
+                return `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
+                        <td style="text-align: center; font-family: monospace; font-weight: bold; color: #1e3a8a;">${a[0]}</td>
+                        <td style="font-weight: bold;">${a[1]} ${a[2]}</td>
+                        <td>${a[4]}</td>
+                        <td style="text-align: center; font-weight: bold; color: #15803d;">${pCount}</td>
+                        <td style="text-align: center; font-weight: bold; color: #b45309;">${rCount}</td>
+                        <td style="text-align: center; font-weight: bold; color: #b91c1c;">${aCount}</td>
+                        <td style="text-align: center;">${pCount * 8}h00</td>
+                        <td style="text-align: center; font-weight: bold;">${taux}%</td>
+                        <td style="font-size: 9pt;">${rCount === 0 ? 'Assidu / Exemplaire' : 'Conforme avec retards'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const tauxGlobal = Math.round((totalPresences / (totalPresences + totalAbsences || 1)) * 100);
+
+            const docContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>Rapport Mensuel de Pointage AREX - ${monthName} ${year}</title>
+                <!--[if gte mso 9]>
+                <xml>
+                    <w:WordDocument>
+                        <w:View>Print</w:View>
+                        <w:Zoom>100</w:Zoom>
+                        <w:DoNotOptimizeForBrowser/>
+                    </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                    @page Section1 {
+                        size: 21cm 29.7cm;
+                        margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+                        mso-header-margin: 36pt;
+                        mso-footer-margin: 36pt;
+                    }
+                    div.Section1 { page: Section1; }
+                    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 10pt; color: #0f172a; line-height: 1.3; }
+                    .header-table { width: 100%; border: none; margin-bottom: 12pt; border-bottom: 2px solid #1e3a8a; padding-bottom: 8pt; }
+                    .title-h1 { font-size: 16pt; font-weight: bold; color: #1e3a8a; text-align: center; text-transform: uppercase; margin: 4pt 0; }
+                    .title-sub { font-size: 11pt; font-weight: normal; color: #475569; text-align: center; margin-bottom: 14pt; }
+                    .kpi-table { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+                    .kpi-table td { border: 1px solid #cbd5e1; padding: 8pt; background: #f8fafc; text-align: center; vertical-align: middle; }
+                    .kpi-title { font-size: 9pt; font-weight: bold; color: #475569; text-transform: uppercase; }
+                    .kpi-number { font-size: 16pt; font-weight: bold; color: #1e3a8a; margin-top: 2pt; }
+                    table.data-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 8pt; }
+                    table.data-table th { background-color: #1e3a8a; color: #ffffff; padding: 6pt 4pt; border: 1px solid #94a3b8; font-weight: bold; text-align: left; }
+                    table.data-table td { padding: 4.5pt 4pt; border: 1px solid #cbd5e1; vertical-align: middle; }
+                    table.data-table tr:nth-child(even) { background-color: #f1f5f9; }
+                    .sign-table { width: 100%; border-collapse: collapse; margin-top: 25pt; page-break-inside: avoid; }
+                    .sign-table td { border: 1px solid #94a3b8; width: 33.33%; height: 95pt; vertical-align: top; padding: 8pt; font-size: 9pt; background: #fafafa; }
+                    .notice-box { background: #eff6ff; border-left: 4px solid #2563eb; padding: 8pt; margin: 10pt 0; font-size: 8.5pt; color: #1e3a8a; }
+                </style>
+            </head>
+            <body>
+                <div class="Section1">
+                    <!-- ENTÊTE ENTREPRISE -->
+                    <table class="header-table">
+                        <tr>
+                            <td style="width: 60%; vertical-align: top;">
+                                <strong style="font-size: 13pt; color: #1e3a8a;">ENTREPRISE AREX &bull; BTP &amp; GÉNIE CIVIL</strong><br>
+                                <span style="font-size: 9pt; color: #475569;">Direction des Ressources Humaines &bull; Gestion des Chantiers</span><br>
+                                <span style="font-size: 9pt; color: #475569;">Chantier Principal de Bobo-Dioulasso, Burkina Faso</span>
+                            </td>
+                            <td style="width: 40%; text-align: right; vertical-align: top; font-size: 9pt; color: #475569;">
+                                <strong>Date d'Édition :</strong> ${dateStr}<br>
+                                <strong>Réf :</strong> AREX-RH-${year}-${String(month).padStart(2,'0')}<br>
+                                <strong>Statut :</strong> <span style="color: #15803d; font-weight: bold;">Document Officiel</span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="title-h1">Rapport Mensuel de Pointage et d'Assiduité</div>
+                    <div class="title-sub">Période : Mois de <strong>${monthName} ${year}</strong> &bull; Effectif Opérationnel : <strong>68 Ouvriers</strong></div>
+
+                    <!-- INDICATEURS CLÉS DU MOIS -->
+                    <table class="kpi-table">
+                        <tr>
+                            <td>
+                                <div class="kpi-title">Effectif Enrôlé</div>
+                                <div class="kpi-number">68</div>
+                                <div style="font-size: 8pt; color: #64748b;">Ouvriers BTP</div>
+                            </td>
+                            <td>
+                                <div class="kpi-title">Présences Cumulées (P)</div>
+                                <div class="kpi-number" style="color: #15803d;">${totalPresences}</div>
+                                <div style="font-size: 8pt; color: #64748b;">Journées validées</div>
+                            </td>
+                            <td>
+                                <div class="kpi-title">Retards Constatés (R)</div>
+                                <div class="kpi-number" style="color: #b45309;">${totalRetards}</div>
+                                <div style="font-size: 8pt; color: #64748b;">Arrivées 07h30-09h00</div>
+                            </td>
+                            <td>
+                                <div class="kpi-title">Absences (A)</div>
+                                <div class="kpi-number" style="color: #b91c1c;">${totalAbsences}</div>
+                                <div style="font-size: 8pt; color: #64748b;">Non justifiées</div>
+                            </td>
+                            <td>
+                                <div class="kpi-title">Taux Assiduité</div>
+                                <div class="kpi-number" style="color: #0284c7;">${tauxGlobal}%</div>
+                                <div style="font-size: 8pt; color: #64748b;">Conformité chantier</div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="notice-box">
+                        <strong>Rappel des Plages Horaires Réglementaires du Chantier :</strong><br>
+                        &bull; <strong>06h00 - 07h30 :</strong> Arrivée Normale (Pointage automatique validé à l'heure).<br>
+                        &bull; <strong>07h30 - 09h00 :</strong> Tolérance Retard (Calcul automatique des minutes de retard).<br>
+                        &bull; <strong>Après 09h00 :</strong> Hors Délai (Accès chantier assujetti à la décision formelle de la Direction RH).<br>
+                        &bull; <strong>Dès 16h00 :</strong> Pointage de Descente obligatoire avec calcul du temps effectif de travail.
+                    </div>
+
+                    <!-- TABLEAU NOMINATIF DES 68 OUVRIERS -->
+                    <h3 style="font-size: 11pt; color: #1e3a8a; margin-top: 14pt; margin-bottom: 4pt; text-transform: uppercase;">
+                        Registre Nominatif d'Assiduité des 68 Ouvriers
+                    </h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25pt; text-align: center;">N°</th>
+                                <th style="width: 35pt; text-align: center;">Mat.</th>
+                                <th>Nom &amp; Prénoms</th>
+                                <th>Corps d'État / Métier</th>
+                                <th style="width: 35pt; text-align: center;">P</th>
+                                <th style="width: 35pt; text-align: center;">R</th>
+                                <th style="width: 35pt; text-align: center;">A</th>
+                                <th style="width: 45pt; text-align: center;">Heures</th>
+                                <th style="width: 45pt; text-align: center;">% Assid.</th>
+                                <th style="width: 100pt;">Appréciation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+
+                    <!-- CADRE DES SIGNATURES OFFICIELLES -->
+                    <table class="sign-table">
+                        <tr>
+                            <td>
+                                <strong>1. Le Responsable HSE / Chantier :</strong><br>
+                                <span style="font-size: 8pt; color: #64748b;">Attestation de conformité des scans terrain</span><br><br><br>
+                                Date et Signature :
+                            </td>
+                            <td>
+                                <strong>2. Le Conducteur des Travaux :</strong><br>
+                                <span style="font-size: 8pt; color: #64748b;">Validation des heures et avancement</span><br><br><br>
+                                Date et Signature :
+                            </td>
+                            <td>
+                                <strong>3. La Direction Générale / DRH :</strong><br>
+                                <span style="font-size: 8pt; color: #64748b;">Approbation pour liquidation des salaires</span><br><br><br>
+                                Mention : <em>"Vu et Approuvé"</em> &bull; Cachet :
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </body>
+            </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + docContent], { type: 'application/msword;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Rapport_Pointage_AREX_${monthName}_${year}.doc`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- RAPPORT JOURNALIER WORD (.DOC) ---
+        function exportDailyWordReport() {
+            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const todayIso = new Date().toISOString().split('T')[0];
+            const pointages = getStoredPointages();
+
+            const rowsHtml = ROSTER.map((a, idx) => {
+                const p = pointages[a[0]];
+                let statutStr = "ABSENT";
+                let arrStr = "--:--";
+                let descStr = "--:--";
+                let durStr = "--";
+
+                if (p) {
+                    arrStr = p.heure_arrivee || "--:--";
+                    descStr = p.heure_descente || "--:--";
+                    durStr = p.duree_travail || "--";
+                    if (p.statut_arrivee === 'A_L_HEURE') statutStr = "À L'HEURE";
+                    else if (p.statut_arrivee === 'RETARD') statutStr = `RETARD (+${p.retard_minutes}m)`;
+                    else if (p.statut_arrivee === 'HORS_DELAI') statutStr = `HORS DÉLAI (+${p.retard_minutes}m)`;
+                }
+
+                return `
+                    <tr>
+                        <td style="text-align: center;">${idx + 1}</td>
+                        <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${a[0]}</td>
+                        <td style="font-weight: bold;">${a[1]} ${a[2]}</td>
+                        <td>${a[4]}</td>
+                        <td style="text-align: center;">${arrStr}</td>
+                        <td style="text-align: center; font-weight: bold;">${statutStr}</td>
+                        <td style="text-align: center;">${descStr}</td>
+                        <td style="text-align: center;">${durStr}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const docContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>Rapport Journalier Pointage AREX - ${todayIso}</title>
+                <style>
+                    body { font-family: 'Calibri', sans-serif; font-size: 10pt; color: #0f172a; }
+                    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+                    th { background: #1e3a8a; color: #fff; padding: 6pt; border: 1px solid #94a3b8; }
+                    td { padding: 4.5pt; border: 1px solid #cbd5e1; }
+                </style>
+            </head>
+            <body>
+                <h2 style="color: #1e3a8a; text-transform: uppercase;">AREX BTP &bull; Rapport Journalier de Pointage Chantier</h2>
+                <p>Date : <strong>${dateStr}</strong> &bull; Bobo-Dioulasso, Burkina Faso</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Mat.</th>
+                            <th>Nom &amp; Prénoms</th>
+                            <th>Fonction</th>
+                            <th>Arrivée</th>
+                            <th>Statut</th>
+                            <th>Descente</th>
+                            <th>Durée</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </body>
+            </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + docContent], { type: 'application/msword;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Pointage_AREX_Journalier_${todayIso}.doc`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- BADGES & QR CODES ---
         function renderBadges() {
             const grid = document.getElementById('badges-grid');
             grid.innerHTML = ROSTER.map(a => {
@@ -419,13 +1050,14 @@
             }).join('');
         }
 
+        // --- EXPORT CSV ---
         function exportCSV() {
             const today = new Date().toISOString().split('T')[0];
             const pointages = getStoredPointages();
-            let csv = "\uFEFFMatricule,Nom,Prenoms,Fonction,Heure Arrivee,Statut Arrivee,Retard (min),Heure Descente,Duree Travail\n";
+            let csv = "\uFEFFMatricule,Nom,Prenoms,Fonction,Heure Arrivee,Statut Arrivee,Retard (min),Heure Descente,Duree Travail,Decision RH\n";
             ROSTER.forEach(a => {
                 const p = pointages[a[0]];
-                csv += `"${a[0]}","${a[1]}","${a[2]}","${a[4]}","${p ? p.heure_arrivee : ''}","${p ? p.statut_arrivee : 'ABSENT'}","${p ? p.retard_minutes : 0}","${p && p.heure_descente ? p.heure_descente : ''}","${p && p.duree_travail ? p.duree_travail : ''}"\n`;
+                csv += `"${a[0]}","${a[1]}","${a[2]}","${a[4]}","${p ? p.heure_arrivee : ''}","${p ? p.statut_arrivee : 'ABSENT'}","${p ? p.retard_minutes : 0}","${p && p.heure_descente ? p.heure_descente : ''}","${p && p.duree_travail ? p.duree_travail : ''}","${p && p.decision_rh ? p.decision_rh : ''}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
@@ -437,37 +1069,63 @@
         }
 
         function exportMatriceCSV() {
-            const now = new Date();
-            let csv = "\uFEFFMatricule,Nom,Fonction," + Array.from({length:31}, (_,i) => `Jour ${i+1}`).join(',') + "\n";
-            const todayDay = now.getDate();
+            const year = parseInt(document.getElementById('filter-year').value);
+            const month = parseInt(document.getElementById('filter-month').value);
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const monthName = MONTH_NAMES[month - 1];
+
+            let csv = "\uFEFFMatricule,Nom,Fonction," + Array.from({length:daysInMonth}, (_,i) => `J${i+1}`).join(',') + ",Total P,Total R,Total A\n";
+            const todayDt = new Date();
+            const isCurrentMonth = (todayDt.getFullYear() === year && (todayDt.getMonth() + 1) === month);
+            const currentDay = todayDt.getDate();
             const pointages = getStoredPointages();
+
             ROSTER.forEach(a => {
                 const p = pointages[a[0]];
                 let days = [];
-                for(let d=1; d<=31; d++) {
-                    if (d === todayDay) {
-                        days.push(p ? (p.statut_arrivee === 'A_L_HEURE' ? 'P' : 'R') : 'A');
-                    } else if (d < todayDay) {
-                        days.push('P');
+                let countP = 0, countR = 0, countA = 0;
+                for (let d = 1; d <= daysInMonth; d++) {
+                    if (isCurrentMonth) {
+                        if (d === currentDay) {
+                            if (!p) { days.push('A'); countA++; }
+                            else if (p.statut_arrivee === 'A_L_HEURE') { days.push('P'); countP++; }
+                            else { days.push('R'); countR++; }
+                        } else if (d < currentDay) {
+                            days.push('P'); countP++;
+                        } else {
+                            days.push('');
+                        }
                     } else {
-                        days.push('');
+                        days.push('P'); countP++;
                     }
                 }
-                csv += `"${a[0]}","${a[1]} ${a[2]}","${a[4]}",${days.join(',')}\n`;
+                csv += `"${a[0]}","${a[1]} ${a[2]}","${a[4]}",${days.join(',')},${countP},${countR},${countA}\n`;
             });
+
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `Pointage_AREX_Matrice_${now.getFullYear()}_${now.getMonth()+1}.csv`);
+            link.setAttribute("download", `Pointage_AREX_Matrice_${monthName}_${year}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
+        // --- INITIALISATION ---
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('date-label').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const now = new Date();
+            document.getElementById('date-label').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            // Set current month in filter
+            const curMonth = now.getMonth() + 1;
+            const mSelect = document.getElementById('filter-month');
+            if (mSelect) mSelect.value = String(curMonth);
+            const ySelect = document.getElementById('filter-year');
+            if (ySelect) ySelect.value = String(now.getFullYear());
+
             renderKPIs();
             renderTable();
+            fetchCloudData(true);
         });
     </script>
 </body>

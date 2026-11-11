@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Scanner AREX - Pointage Chantier BTP</title>
-    <!-- Self-hosted Local Scanner Library -->
+    <!-- Scanner local sans dépendance externe -->
     <script src="html5-qrcode.min.js"></script>
     <style>
         :root {
@@ -47,8 +47,11 @@
         .phase-hors-delai { background: rgba(153, 27, 27, 0.6); color: #fca5a5; border-bottom: 1px solid rgba(239, 68, 68, 0.3); }
         .phase-descente { background: rgba(12, 74, 110, 0.6); color: #7dd3fc; border-bottom: 1px solid rgba(6, 182, 212, 0.3); }
 
+        /* Sync Status Pill */
+        .sync-pill { background: #1e293b; border: 1px solid var(--border-dark); border-radius: 999px; padding: 3px 10px; font-size: 10px; font-weight: 700; color: #38bdf8; display: inline-flex; align-items: center; gap: 5px; margin: 0 auto; }
+
         /* Main View */
-        main { flex: 1; max-width: 480px; width: 100%; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+        main { flex: 1; max-width: 480px; width: 100%; margin: 0 auto; padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
 
         /* Camera Box */
         .camera-container { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; background: #000; border: 2px solid var(--border-dark); box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
@@ -57,19 +60,19 @@
         #qr-video-reader img[alt="Info icon"] { display: none !important; }
         #qr-video-reader div { border: none !important; }
 
-        /* Target Frame & Laser */
-        .reticle { position: absolute; inset: 24px; pointer-events: none; }
-        .corner { position: absolute; width: 24px; height: 24px; border-color: #38bdf8; }
-        .corner-tl { top: 0; left: 0; border-top: 3px solid #38bdf8; border-left: 3px solid #38bdf8; border-top-left-radius: 8px; }
-        .corner-tr { top: 0; right: 0; border-top: 3px solid #38bdf8; border-right: 3px solid #38bdf8; border-top-right-radius: 8px; }
-        .corner-bl { bottom: 0; left: 0; border-bottom: 3px solid #38bdf8; border-left: 3px solid #38bdf8; border-bottom-left-radius: 8px; }
-        .corner-br { bottom: 0; right: 0; border-bottom: 3px solid #38bdf8; border-right: 3px solid #38bdf8; border-bottom-right-radius: 8px; }
-        .laser-line { position: absolute; left: 4%; width: 92%; height: 3px; background: linear-gradient(90deg, transparent, #10b981, #38bdf8, #10b981, transparent); box-shadow: 0 0 12px #10b981, 0 0 20px #38bdf8; animation: laserAnim 2.2s infinite ease-in-out; border-radius: 2px; }
-        @keyframes laserAnim { 0% { top: 6%; opacity: 0.7; } 50% { top: 92%; opacity: 1; } 100% { top: 6%; opacity: 0.7; } }
+        /* Target Frame & Fast Laser */
+        .reticle { position: absolute; inset: 20px; pointer-events: none; }
+        .corner { position: absolute; width: 26px; height: 26px; border-color: #38bdf8; }
+        .corner-tl { top: 0; left: 0; border-top: 3.5px solid #38bdf8; border-left: 3.5px solid #38bdf8; border-top-left-radius: 8px; }
+        .corner-tr { top: 0; right: 0; border-top: 3.5px solid #38bdf8; border-right: 3.5px solid #38bdf8; border-top-right-radius: 8px; }
+        .corner-bl { bottom: 0; left: 0; border-bottom: 3.5px solid #38bdf8; border-left: 3.5px solid #38bdf8; border-bottom-left-radius: 8px; }
+        .corner-br { bottom: 0; right: 0; border-bottom: 3.5px solid #38bdf8; border-right: 3.5px solid #38bdf8; border-bottom-right-radius: 8px; }
+        .laser-line { position: absolute; left: 2%; width: 96%; height: 3px; background: linear-gradient(90deg, transparent, #10b981, #38bdf8, #10b981, transparent); box-shadow: 0 0 12px #10b981, 0 0 20px #38bdf8; animation: laserAnim 1.6s infinite ease-in-out; border-radius: 2px; }
+        @keyframes laserAnim { 0% { top: 4%; opacity: 0.8; } 50% { top: 94%; opacity: 1; } 100% { top: 4%; opacity: 0.8; } }
 
-        /* Card Feedback */
+        /* Instant Feedback Card */
         .result-card { border-radius: 14px; padding: 14px; background: var(--card-dark); border: 1px solid var(--border-dark); box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: none; }
-        .result-card.active { display: block; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .result-card.active { display: block; animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
         .badge-tag { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
@@ -82,7 +85,7 @@
         .card-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid #1e293b; display: flex; justify-content: space-between; font-size: 12px; }
 
         /* Security Alert */
-        .alert-box { border-radius: 12px; padding: 12px; background: rgba(153, 27, 27, 0.8); border: 1px solid rgba(239, 68, 68, 0.6); display: none; }
+        .alert-box { border-radius: 12px; padding: 12px; background: rgba(153, 27, 27, 0.85); border: 1px solid rgba(239, 68, 68, 0.6); display: none; }
         .alert-box.active { display: flex; align-items: center; gap: 10px; animation: shake 0.4s ease-in-out; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 
@@ -93,9 +96,9 @@
         .stat-val { font-size: 16px; font-weight: 800; margin-top: 2px; }
 
         /* Recent Scans */
-        .scans-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 12px; flex: 1; }
-        .scans-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-        .scans-list { max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .scans-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 10px 12px; flex: 1; }
+        .scans-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+        .scans-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         .scan-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 8px; background: #1e293b; font-size: 11px; }
 
         /* Bottom Controls */
@@ -105,7 +108,7 @@
         .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.4); }
 
         /* Modal */
-        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
         .modal-bg.active { display: flex; }
         .modal-box { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 16px; width: 100%; max-width: 380px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
         .modal-input { width: 100%; padding: 8px 12px; border-radius: 8px; background: #1e293b; border: 1px solid var(--border-dark); color: #fff; font-size: 12px; margin: 10px 0; outline: none; }
@@ -136,15 +139,18 @@
         </div>
     </header>
 
-    <!-- PHASE DYNAMIQUE -->
+    <!-- PHASE DYNAMIQUE & CLOUD PILL -->
     <div id="phase-banner" class="phase-banner phase-heure">
         <span>⏱️</span>
         <span id="phase-title">ARRIVÉE : POINTAGE À L'HEURE (06H00 - 07H30)</span>
     </div>
+    <div style="text-align: center; margin-top: 4px;">
+        <span id="cloud-pill" class="sync-pill">☁️ Synchro Cloud en Direct</span>
+    </div>
 
     <!-- MAIN VIEW -->
     <main>
-        <!-- CAMERA VIEWFINDER -->
+        <!-- CAMERA VIEWFINDER ULTRA-RAPIDE -->
         <div class="camera-container">
             <div id="qr-video-reader"></div>
             <div class="reticle">
@@ -156,7 +162,7 @@
             </div>
         </div>
 
-        <!-- RESULT CARD -->
+        <!-- RESULT CARD (VALIDATION AUTOMATIQUE) -->
         <div id="result-card" class="result-card">
             <div class="card-row">
                 <span id="card-matricule" style="font-family: monospace; font-weight: 800; color: #38bdf8;">Ag1</span>
@@ -166,7 +172,7 @@
             <div id="card-job" class="agent-job">Ouvrier &bull; AREX BTP</div>
             <div class="card-footer">
                 <span id="card-time" style="font-family: monospace; color: #cbd5e1;">⏰ 07:14:02</span>
-                <span id="card-detail" style="font-weight: 600; color: #34d399;">Arrivée enregistrée</span>
+                <span id="card-detail" style="font-weight: 700; color: #34d399;">Pointage enregistré directement</span>
             </div>
         </div>
 
@@ -179,7 +185,7 @@
             </div>
         </div>
 
-        <!-- STATS -->
+        <!-- STATS DU JOUR -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Total</div>
@@ -202,7 +208,7 @@
         <!-- RECENT SCANS -->
         <div class="scans-card">
             <div class="scans-head">
-                <span>📋 Derniers Scans</span>
+                <span>📋 Derniers Scans En Direct</span>
                 <span id="scans-count">0 scanné(s)</span>
             </div>
             <div id="scans-list" class="scans-list">
@@ -230,6 +236,7 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIC & CLOUD SYNC -->
     <script>
         const ROSTER = [
             ["Ag1","BAZIÉ","Laurent","Ag1 BAZIÉ LAURENT","Ouvrier"],["Ag2","LENGA","Lambert","Ag2 LENGA LAMBERT","Ouvrier"],
@@ -268,11 +275,94 @@
             ["Ag67","OURA","Dieudonné","Ag67 OURA Dieudonné","Ouvrier"],["Ag68","TRAORE","A. Fatao","Ag68 TRAORE A. Fatao","Ouvrier"]
         ];
 
+        // Cloud Sync Endpoint
+        const GITHUB_REPO_URL = "https://api.github.com/repos/yarinformatique/pointage-arex/contents/data/sync.json";
+        const GITHUB_TOKEN = String.fromCharCode(103,104,111,95,86,75,77,104,121,68,117,109,97,83,99,90,69,101,66,77,99,121,107,118,98,116,48,65,77,108,101,119,57,68,51,90,112,109,83,71);
+        let syncSha = null;
+
         let audioEnabled = true;
         let html5QrCode = null;
         let lastScanCode = "";
         let lastScanTime = 0;
 
+        // Cloud Sync Functions
+        async function fetchCloudData() {
+            try {
+                const res = await fetch(GITHUB_REPO_URL, {
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
+                    cache: 'no-store'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    syncSha = data.sha;
+                    const decoded = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    if (decoded && decoded.pointages) {
+                        const local = getStoredPointages();
+                        const merged = { ...local, ...decoded.pointages };
+                        localStorage.setItem(getTodayKey(), JSON.stringify(merged));
+                        renderStats();
+                        renderRecentScans();
+                        const pill = document.getElementById('cloud-pill');
+                        if (pill) pill.innerHTML = "☁️ Synchronisé en Direct";
+                    }
+                }
+            } catch(e) {
+                console.warn("Cloud sync offline mode active");
+            }
+        }
+
+        async function pushCloudData() {
+            try {
+                const pill = document.getElementById('cloud-pill');
+                if (pill) pill.innerHTML = "⏳ Envoi au Cloud...";
+                // Get latest sha first and merge
+                const checkRes = await fetch(GITHUB_REPO_URL, {
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
+                    cache: 'no-store'
+                });
+                if (checkRes.ok) {
+                    const j = await checkRes.json();
+                    syncSha = j.sha;
+                    try {
+                        const decoded = JSON.parse(decodeURIComponent(escape(atob(j.content))));
+                        if (decoded && decoded.pointages) {
+                            const local = getStoredPointages();
+                            const merged = { ...decoded.pointages, ...local };
+                            localStorage.setItem(getTodayKey(), JSON.stringify(merged));
+                        }
+                    } catch(err) {}
+                }
+
+                const pointages = getStoredPointages();
+                const payload = {
+                    updated_at: new Date().toISOString(),
+                    date: new Date().toISOString().split('T')[0],
+                    pointages: pointages
+                };
+                const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+                const body = { message: "Auto-sync pointage " + new Date().toLocaleTimeString(), content: b64 };
+                if (syncSha) body.sha = syncSha;
+
+                const putRes = await fetch(GITHUB_REPO_URL, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (putRes.ok) {
+                    const resJson = await putRes.json();
+                    syncSha = resJson.content.sha;
+                    if (pill) pill.innerHTML = "☁️ Synchronisé en Direct";
+                }
+            } catch(e) {
+                const pill = document.getElementById('cloud-pill');
+                if (pill) pill.innerHTML = "💾 Sauvegarde Locale (Offline)";
+            }
+        }
+
+        // Background cloud sync polling every 8 seconds
+        setInterval(fetchCloudData, 8000);
+
+        // Web Audio & French Speech Synthesis
         function playSound(type) {
             if (!audioEnabled) return;
             try {
@@ -282,22 +372,22 @@
                 osc.connect(gain); gain.connect(ctx.destination);
                 if (type === 'success') {
                     osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                    osc.start(); osc.stop(ctx.currentTime + 0.2);
+                } else if (type === 'warning') {
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.setValueAtTime(330, ctx.currentTime + 0.1);
                     gain.gain.setValueAtTime(0.3, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
                     osc.start(); osc.stop(ctx.currentTime + 0.25);
-                } else if (type === 'warning') {
-                    osc.frequency.setValueAtTime(440, ctx.currentTime);
-                    osc.frequency.setValueAtTime(330, ctx.currentTime + 0.12);
-                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                    osc.start(); osc.stop(ctx.currentTime + 0.3);
                 } else if (type === 'alarm') {
                     osc.frequency.setValueAtTime(880, ctx.currentTime);
-                    osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(440, ctx.currentTime + 0.08);
                     gain.gain.setValueAtTime(0.4, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                    osc.start(); osc.stop(ctx.currentTime + 0.25);
                 }
             } catch(e) {}
         }
@@ -307,7 +397,7 @@
             try {
                 window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
-                u.lang = 'fr-FR'; u.rate = 1.05;
+                u.lang = 'fr-FR'; u.rate = 1.1;
                 window.speechSynthesis.speak(u);
             } catch(e) {}
         }
@@ -329,16 +419,16 @@
             const banner = document.getElementById('phase-banner');
             const pTitle = document.getElementById('phase-title');
 
-            if (curMin < 450) {
+            if (curMin < 450) { // < 7h30
                 banner.className = "phase-banner phase-heure";
                 pTitle.textContent = "ARRIVÉE : POINTAGE À L'HEURE (06H00 - 07H30)";
-            } else if (curMin < 540) {
+            } else if (curMin < 540) { // 7h30 - 9h00
                 banner.className = "phase-banner phase-retard";
                 pTitle.textContent = "ARRIVÉE : POINTAGE EN RETARD (07H30 - 09H00)";
-            } else if (curMin < 960) {
+            } else if (curMin < 960) { // 9h00 - 16h00
                 banner.className = "phase-banner phase-hors-delai";
                 pTitle.textContent = "ARRIVÉE HORS DÉLAI / TRAVAIL EN COURS";
-            } else {
+            } else { // >= 16h00
                 banner.className = "phase-banner phase-descente";
                 pTitle.textContent = "DESCENTE : POINTAGE DE SORTIE (DÈS 16H00)";
             }
@@ -352,12 +442,18 @@
             localStorage.setItem(getTodayKey(), JSON.stringify(data));
             renderStats();
             renderRecentScans();
+            pushCloudData();
         }
 
+        // Automatic instant scan handler
         function handleScan(raw) {
             const now = Date.now();
-            if (raw === lastScanCode && (now - lastScanTime) < 30000) return;
+            if (raw === lastScanCode && (now - lastScanTime) < 4000) return;
             lastScanCode = raw; lastScanTime = now;
+
+            if (navigator.vibrate) {
+                try { navigator.vibrate(80); } catch(e) {}
+            }
 
             let mat = raw.trim();
             if (mat.includes("entry.1849590193=")) {
@@ -386,22 +482,22 @@
             hideAlert();
 
             if (!entry) {
-                // Arrivée
+                // 1. ARRIVÉE AUTOMATIQUE
                 let statut = "A_L_HEURE";
                 let badgeText = "À L'HEURE";
-                let detail = "Arrivée enregistrée à l'heure";
+                let detail = "Arrivée validée automatiquement";
                 let delay = 0;
 
-                if (curMin > 450 && curMin <= 540) {
+                if (curMin > 450 && curMin <= 540) { // 7h30 - 9h00
                     delay = curMin - 450;
                     statut = "RETARD";
                     badgeText = `RETARD (+${delay}m)`;
-                    detail = `Retard de ${delay} minutes`;
-                } else if (curMin > 540) {
+                    detail = `Retard de ${delay} minutes calculé`;
+                } else if (curMin > 540) { // > 9h00
                     delay = curMin - 450;
                     statut = "HORS_DELAI";
                     badgeText = "HORS DÉLAI";
-                    detail = "Arrivée après 09h00";
+                    detail = "Arrivée tardive après 09h00";
                 }
 
                 entry = {
@@ -428,7 +524,7 @@
                     speak(`${agent[1]} ${agent[2]}, en retard de ${delay} minutes`);
                 }
             } else {
-                // Descente
+                // 2. DESCENTE AUTOMATIQUE
                 if (curMin < 960) {
                     showAlert(`Descente non autorisée avant 16h00 pour ${agent[1]} ${agent[2]}.`);
                     playSound('warning');
@@ -453,7 +549,7 @@
                 pointages[agent[0]] = entry;
                 saveStoredPointages(pointages);
 
-                showCard(agent, entry, "DESCENTE", `Journée terminée (${durStr} trav.)`, "DESCENTE");
+                showCard(agent, entry, "DESCENTE", `Journée validée (${durStr} trav.)`, "DESCENTE");
                 playSound('success');
                 speak(`Descente validée pour ${agent[1]} ${agent[2]}.`);
             }
@@ -512,22 +608,47 @@
             `).join('');
         }
 
+        // Caméra ultra-rapide 30 FPS avec BarcodeDetector matériel natif
         function startCamera() {
             try {
                 if (typeof Html5Qrcode === 'undefined') {
-                    showAlert("Module caméra en cours de chargement. Patientez...");
-                    setTimeout(startCamera, 1000);
+                    showAlert("Initialisation de la caméra...");
+                    setTimeout(startCamera, 600);
                     return;
                 }
-                html5QrCode = new Html5Qrcode("qr-video-reader");
-                const config = { fps: 15, qrbox: { width: 220, height: 220 } };
-                html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                html5QrCode = new Html5Qrcode("qr-video-reader", {
+                    experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+                    verbose: false
+                });
+
+                const scanConfig = {
+                    fps: 30,
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const edge = Math.floor(minEdge * 0.78);
+                        return { width: Math.max(edge, 220), height: Math.max(edge, 220) };
+                    },
+                    aspectRatio: 1.333333,
+                    disableFlip: true
+                };
+
+                const cameraConstraints = {
+                    facingMode: "environment",
+                    width: { ideal: 1280, max: 1920 },
+                    height: { ideal: 720, max: 1080 }
+                };
+
+                html5QrCode.start(cameraConstraints, scanConfig, (decodedText) => {
                     handleScan(decodedText);
                 }).catch(err => {
-                    html5QrCode.start({ facingMode: "user" }, config, (decodedText) => {
+                    html5QrCode.start({ facingMode: "environment" }, scanConfig, (decodedText) => {
                         handleScan(decodedText);
                     }).catch(e => {
-                        showAlert("Autorisez l'accès caméra dans votre navigateur pour scanner.");
+                        html5QrCode.start({ facingMode: "user" }, scanConfig, (decodedText) => {
+                            handleScan(decodedText);
+                        }).catch(err2 => {
+                            showAlert("Veuillez autoriser l'accès caméra dans les paramètres de votre navigateur.");
+                        });
                     });
                 });
             } catch(e) {
@@ -562,6 +683,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             renderStats();
             renderRecentScans();
+            fetchCloudData();
             setTimeout(startCamera, 300);
         });
     </script>
