@@ -395,8 +395,48 @@
         let syncSha = null;
         let isSyncing = false;
 
-        function getTodayKey() { return "arex_pointages_" + new Date().toISOString().split('T')[0]; }
-        function getStoredPointages() { return JSON.parse(localStorage.getItem(getTodayKey()) || "{}"); }
+        function getTodayDate() { return new Date().toISOString().split('T')[0]; }
+        function getTodayKey() { return "arex_pointages_" + getTodayDate(); }
+        function getDeletionsKey() { return "arex_deletions_" + getTodayDate(); }
+
+        function getStoredPointages() {
+            try { return JSON.parse(localStorage.getItem(getTodayKey()) || "{}"); } catch(e) { return {}; }
+        }
+        function getStoredDeletions() {
+            try { return JSON.parse(localStorage.getItem(getDeletionsKey()) || "{}"); } catch(e) { return {}; }
+        }
+
+        function mergePointagesAndDeletions(localPointages, localDeletions, remotePointages, remoteDeletions) {
+            const mergedDeletions = { ...(localDeletions || {}), ...(remoteDeletions || {}) };
+            const mergedPointages = {};
+            const allKeys = new Set([...Object.keys(localPointages || {}), ...Object.keys(remotePointages || {})]);
+
+            for (const mat of allKeys) {
+                const delTime = mergedDeletions[mat] || 0;
+                const loc = (localPointages || {})[mat];
+                const rem = (remotePointages || {})[mat];
+
+                let candidate = null;
+                if (loc && rem) {
+                    const locTime = new Date(loc.timestamp || 0).getTime();
+                    const remTime = new Date(rem.timestamp || 0).getTime();
+                    candidate = locTime >= remTime ? loc : rem;
+                } else {
+                    candidate = loc || rem;
+                }
+
+                if (candidate) {
+                    const candTime = new Date(candidate.timestamp || 0).getTime();
+                    if (candTime > delTime) {
+                        mergedPointages[mat] = candidate;
+                    }
+                }
+            }
+            return { pointages: mergedPointages, deletions: mergedDeletions };
+        }
+
+        let isPushing = false;
+        let needsPushAgain = false;
 
         // --- REAL-TIME CLOUD SYNCHRONIZATION ---
         async function fetchCloudData(isManual = false) {
@@ -406,7 +446,9 @@
             if (isManual && ind) ind.innerHTML = "⏳ Synchronisation Cloud...";
 
             try {
-                const res = await fetch(GITHUB_REPO_URL, {
+                // Horodatage dynamique anti-cache pour forcer le rafraîchissement immédiat
+                const cacheBusterUrl = GITHUB_REPO_URL + "?t=" + Date.now();
+                const res = await fetch(cacheBusterUrl, {
                     headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
                     cache: 'no-store'
                 });
@@ -417,10 +459,14 @@
                     const decoded = JSON.parse(decodeURIComponent(escape(atob(data.content))));
 
                     if (decoded && decoded.pointages) {
-                        const local = getStoredPointages();
-                        // Merge remote with local (remote takes precedence for scans from mobile)
-                        const merged = { ...local, ...decoded.pointages };
-                        localStorage.setItem(getTodayKey(), JSON.stringify(merged));
+                        const localP = getStoredPointages();
+                        const localD = getStoredDeletions();
+                        const remoteP = decoded.pointages || {};
+                        const remoteD = decoded.deletions || {};
+
+                        const merged = mergePointagesAndDeletions(localP, localD, remoteP, remoteD);
+                        localStorage.setItem(getTodayKey(), JSON.stringify(merged.pointages));
+                        localStorage.setItem(getDeletionsKey(), JSON.stringify(merged.deletions));
                         
                         renderKPIs();
                         renderTable();
@@ -429,7 +475,8 @@
                         }
 
                         const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        if (ind) ind.innerHTML = `☁️ Synchronisé en Direct (${timeNow})`;
+                        const count = Object.keys(merged.pointages).length;
+                        if (ind) ind.innerHTML = `☁️ Synchronisé en Direct (${timeNow}) • ${count} scanné(s)`;
                     }
                 } else {
                     if (ind) ind.innerHTML = "☁️ Connecté (Local)";
@@ -441,30 +488,61 @@
             }
         }
 
-        async function pushCloudData() {
+        async function pushCloudData(retryCount = 0) {
+            if (isPushing) {
+                needsPushAgain = true;
+                return;
+            }
+            isPushing = true;
             const ind = document.getElementById('sync-indicator');
             if (ind) ind.innerHTML = "⏳ Sauvegarde Cloud...";
 
             try {
-                // Refresh SHA first
-                const checkRes = await fetch(GITHUB_REPO_URL, {
+                const cacheBusterUrl = GITHUB_REPO_URL + "?t=" + Date.now();
+                const checkRes = await fetch(cacheBusterUrl, {
                     headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
                     cache: 'no-store'
                 });
+
+                let currentSha = syncSha;
+                let remoteP = {};
+                let remoteD = {};
+
                 if (checkRes.ok) {
                     const j = await checkRes.json();
+                    currentSha = j.sha;
                     syncSha = j.sha;
+                    try {
+                        const decoded = JSON.parse(decodeURIComponent(escape(atob(j.content))));
+                        if (decoded) {
+                            remoteP = decoded.pointages || {};
+                            remoteD = decoded.deletions || {};
+                        }
+                    } catch(err) {}
                 }
 
-                const pointages = getStoredPointages();
+                const localP = getStoredPointages();
+                const localD = getStoredDeletions();
+                const merged = mergePointagesAndDeletions(localP, localD, remoteP, remoteD);
+
+                localStorage.setItem(getTodayKey(), JSON.stringify(merged.pointages));
+                localStorage.setItem(getDeletionsKey(), JSON.stringify(merged.deletions));
+                renderKPIs();
+                renderTable();
+
                 const payload = {
                     updated_at: new Date().toISOString(),
-                    date: new Date().toISOString().split('T')[0],
-                    pointages: pointages
+                    date: getTodayDate(),
+                    pointages: merged.pointages,
+                    deletions: merged.deletions
                 };
+
                 const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-                const body = { message: "Mise à jour direction pointage " + new Date().toLocaleTimeString(), content: b64 };
-                if (syncSha) body.sha = syncSha;
+                const body = {
+                    message: "Mise à jour direction pointage " + new Date().toLocaleTimeString('fr-FR'),
+                    content: b64
+                };
+                if (currentSha) body.sha = currentSha;
 
                 const putRes = await fetch(GITHUB_REPO_URL, {
                     method: 'PUT',
@@ -474,17 +552,35 @@
 
                 if (putRes.ok) {
                     const resJson = await putRes.json();
-                    syncSha = resJson.content.sha;
+                    syncSha = resJson.content ? resJson.content.sha : null;
                     const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    if (ind) ind.innerHTML = `☁️ Synchronisé en Direct (${timeNow})`;
+                    const count = Object.keys(merged.pointages).length;
+                    if (ind) ind.innerHTML = `☁️ Synchronisé en Direct (${timeNow}) • ${count} scanné(s)`;
+                } else if (putRes.status === 409 && retryCount < 3) {
+                    isPushing = false;
+                    await new Promise(r => setTimeout(r, 400));
+                    return await pushCloudData(retryCount + 1);
+                } else {
+                    if (ind) ind.innerHTML = "💾 Sauvegardé en Local";
                 }
             } catch(e) {
                 if (ind) ind.innerHTML = "💾 Sauvegardé en Local";
+            } finally {
+                isPushing = false;
+                if (needsPushAgain) {
+                    needsPushAgain = false;
+                    pushCloudData();
+                }
             }
         }
 
-        // Automatic background polling every 4 seconds
-        setInterval(() => fetchCloudData(false), 4000);
+        // Automatic background polling every 3.5 seconds + focus / visibility
+        setInterval(() => fetchCloudData(false), 3500);
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") fetchCloudData(true);
+        });
+        window.addEventListener("focus", () => fetchCloudData(true));
+        window.addEventListener("online", () => fetchCloudData(true));
 
         // --- NAVIGATION TABS ---
         function switchTab(t) {
@@ -558,21 +654,35 @@
                     }
                 }
 
-                // Colonne ACTION : AUTOMATIQUE (PAS DE BOUTON SI À L'HEURE OU RETARD STANDARD)
-                // Le bouton d'action ne reste QUE si l'ouvrier est HORS DÉLAI (> 09h00) ou ABSENT pour décision RH.
+                // Colonne ACTION : AFFICHAGE DU STATUT + BOUTON DE SUPPRESSION
                 let actionHtml = "";
                 if (!p) {
                     // Non scanné : Absent => bouton décision / régularisation
                     actionHtml = `<button onclick="openDecisionModal('${a[0]}', 'ABSENT')" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">✍️ Régulariser</button>`;
                 } else if (p.statut_arrivee === 'HORS_DELAI') {
-                    // Hors délai (> 09h00) : décision requise
-                    actionHtml = `<button onclick="openDecisionModal('${a[0]}', 'HORS_DELAI')" class="btn" style="background: #e11d48; color: #fff; padding: 4px 10px; font-size: 11px; font-weight: 800;">⚠️ Hors Délai : Décider</button>`;
+                    // Hors délai (> 09h00) : décision requise + suppression directe
+                    actionHtml = `
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <button onclick="openDecisionModal('${a[0]}', 'HORS_DELAI')" class="btn" style="background: #e11d48; color: #fff; padding: 4px 10px; font-size: 11px; font-weight: 800;">⚠️ Décider</button>
+                            <button onclick="deletePointage('${a[0]}')" class="btn" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 8px; font-size: 11px;" title="Supprimer carrément ce pointage">🗑️ Suppr.</button>
+                        </div>
+                    `;
                 } else if (p.heure_descente) {
-                    // Journée complète
-                    actionHtml = `<span style="color: #38bdf8; font-weight: 800; font-size: 11px;">🏁 Validé (${p.duree_travail})</span>`;
+                    // Journée complète + suppression
+                    actionHtml = `
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="color: #38bdf8; font-weight: 800; font-size: 11px;">🏁 Validé (${p.duree_travail})</span>
+                            <button onclick="deletePointage('${a[0]}')" class="btn" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 8px; font-size: 11px;" title="Supprimer carrément ce pointage">🗑️ Suppr.</button>
+                        </div>
+                    `;
                 } else {
-                    // Pointé automatiquement (À l'heure ou Retard normal) : VALIDATION DIRECTE
-                    actionHtml = `<span style="color: #34d399; font-weight: 800; font-size: 11px;">⚡ Pointé Auto</span>`;
+                    // Pointé automatiquement (À l'heure ou Retard normal) : VALIDATION DIRECTE + BOUTON SUPPRIMER
+                    actionHtml = `
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="color: #34d399; font-weight: 800; font-size: 11px;">⚡ Pointé Auto</span>
+                            <button onclick="deletePointage('${a[0]}')" class="btn" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 8px; font-size: 11px;" title="Supprimer carrément ce pointage">🗑️ Suppr.</button>
+                        </div>
+                    `;
                 }
 
                 return `
@@ -588,6 +698,49 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        // --- SUPPRESSION D'UN POINTAGE D'UN OUVRIER ---
+        function deletePointage(matricule) {
+            const agent = ROSTER.find(a => a[0] === matricule);
+            const nom = agent ? `${agent[1]} ${agent[2]}` : matricule;
+            if (!confirm(`Supprimer carrément le pointage de ${nom} (${matricule}) ?\nL'ouvrier redeviendra absent (non scanné) et les compteurs seront immédiatement actualisés.`)) {
+                return;
+            }
+
+            const pointages = getStoredPointages();
+            const deletions = getStoredDeletions();
+
+            delete pointages[matricule];
+            deletions[matricule] = Date.now();
+
+            localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+            localStorage.setItem(getDeletionsKey(), JSON.stringify(deletions));
+
+            renderKPIs();
+            renderTable();
+            if (document.getElementById('view-matrice') && document.getElementById('view-matrice').classList.contains('active')) {
+                renderMatrice();
+            }
+
+            pushCloudData();
+            showToast(`Le pointage de ${nom} (${matricule}) a été supprimé avec succès.`);
+        }
+
+        let toastTimer = null;
+        function showToast(msg, isSuccess = true) {
+            let toast = document.getElementById('toast-notification');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast-notification';
+                toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); font-size: 13px; font-weight: 700; display: none; align-items: center; gap: 8px; transition: all 0.2s ease;';
+                document.body.appendChild(toast);
+            }
+            toast.style.borderColor = isSuccess ? '#10b981' : '#ef4444';
+            toast.innerHTML = (isSuccess ? '✅ ' : '⚠️ ') + msg;
+            toast.style.display = 'flex';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3500);
         }
 
         // --- GESTION DES MODALES DE DÉCISION (POUR HORS DÉLAI ET ABSENTS) ---
@@ -623,6 +776,7 @@
             const decision = document.getElementById('modal-decision-select').value;
             const note = document.getElementById('modal-note-input').value.trim();
             const pointages = getStoredPointages();
+            const deletions = getStoredDeletions();
             const nowDt = new Date();
             const timeStr = nowDt.toTimeString().split(' ')[0];
 
@@ -642,15 +796,19 @@
                 entry.statut_arrivee = "A_L_HEURE";
                 entry.retard_minutes = 0;
                 entry.decision_rh = "Autorisé à l'heure : " + (note || "Instruction Direction");
+                delete deletions[mat];
             } else if (decision === 'VALIDE_RETARD') {
                 entry.statut_arrivee = "RETARD";
                 entry.retard_minutes = entry.retard_minutes || 30;
                 entry.decision_rh = "Retard validé : " + (note || "Régularisation RH");
+                delete deletions[mat];
             } else if (decision === 'ABSENCE_AUTORISEE') {
                 entry.statut_arrivee = "ABSENCE_AUTORISEE";
                 entry.decision_rh = "Absence autorisée : " + (note || "Accord préalable");
+                delete deletions[mat];
             } else if (decision === 'ABSENCE_INJUSTIFIEE') {
                 delete pointages[mat];
+                deletions[mat] = Date.now();
             }
 
             if (decision !== 'ABSENCE_INJUSTIFIEE') {
@@ -658,10 +816,12 @@
             }
 
             localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+            localStorage.setItem(getDeletionsKey(), JSON.stringify(deletions));
             closeDecisionModal();
             renderKPIs();
             renderTable();
             pushCloudData();
+            showToast(decision === 'ABSENCE_INJUSTIFIEE' ? `Absence confirmée pour ${currentModalAgent[1]} ${currentModalAgent[2]}` : `Pointage régularisé pour ${currentModalAgent[1]} ${currentModalAgent[2]}`);
         }
 
         // --- STATISTIQUES CALENDRIER & JOURS OUVRABLES (HORS DIMANCHES) ---

@@ -48,20 +48,21 @@
         .phase-descente { background: rgba(12, 74, 110, 0.6); color: #7dd3fc; border-bottom: 1px solid rgba(6, 182, 212, 0.3); }
 
         /* Sync Status Pill */
-        .sync-pill { background: #1e293b; border: 1px solid var(--border-dark); border-radius: 999px; padding: 3px 10px; font-size: 10px; font-weight: 700; color: #38bdf8; display: inline-flex; align-items: center; gap: 5px; margin: 0 auto; }
+        .sync-pill { background: #1e293b; border: 1px solid var(--border-dark); border-radius: 999px; padding: 4px 12px; font-size: 10px; font-weight: 700; color: #38bdf8; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+        .sync-pill:hover { background: #334155; }
 
         /* Main View */
         main { flex: 1; max-width: 480px; width: 100%; margin: 0 auto; padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
 
         /* Camera Box */
         .camera-container { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; background: #000; border: 2px solid var(--border-dark); box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
-        #qr-video-reader { width: 100% !important; height: 100% !important; border: none !important; }
-        #qr-video-reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 14px; }
+        #qr-video-reader { width: 100% !important; height: 100% !important; border: none !important; position: absolute; inset: 0; }
+        #qr-video-reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 14px; display: block !important; }
         #qr-video-reader img[alt="Info icon"] { display: none !important; }
         #qr-video-reader div { border: none !important; }
 
-        /* Target Frame & Fast Laser */
-        .reticle { position: absolute; inset: 20px; pointer-events: none; }
+        /* Target Frame & Laser */
+        .reticle { position: absolute; inset: 16px; pointer-events: none; z-index: 10; }
         .corner { position: absolute; width: 26px; height: 26px; border-color: #38bdf8; }
         .corner-tl { top: 0; left: 0; border-top: 3.5px solid #38bdf8; border-left: 3.5px solid #38bdf8; border-top-left-radius: 8px; }
         .corner-tr { top: 0; right: 0; border-top: 3.5px solid #38bdf8; border-right: 3.5px solid #38bdf8; border-top-right-radius: 8px; }
@@ -69,6 +70,15 @@
         .corner-br { bottom: 0; right: 0; border-bottom: 3.5px solid #38bdf8; border-right: 3.5px solid #38bdf8; border-bottom-right-radius: 8px; }
         .laser-line { position: absolute; left: 2%; width: 96%; height: 3px; background: linear-gradient(90deg, transparent, #10b981, #38bdf8, #10b981, transparent); box-shadow: 0 0 12px #10b981, 0 0 20px #38bdf8; animation: laserAnim 1.6s infinite ease-in-out; border-radius: 2px; }
         @keyframes laserAnim { 0% { top: 4%; opacity: 0.8; } 50% { top: 94%; opacity: 1; } 100% { top: 4%; opacity: 0.8; } }
+
+        /* Floating camera tool buttons */
+        .camera-floating-tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 20; }
+        .cam-tool-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; backdrop-filter: blur(6px); transition: transform 0.15s, background 0.15s; }
+        .cam-tool-btn:hover { background: rgba(37, 99, 235, 0.85); transform: scale(1.08); }
+
+        /* Camera Overlay (shown when camera needs start/permission or is paused) */
+        .camera-overlay { position: absolute; inset: 0; background: rgba(7, 10, 18, 0.92); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 25; text-align: center; }
+        .camera-overlay-box { max-width: 320px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 
         /* Instant Feedback Card */
         .result-card { border-radius: 14px; padding: 14px; background: var(--card-dark); border: 1px solid var(--border-dark); box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: none; }
@@ -98,8 +108,8 @@
         /* Recent Scans */
         .scans-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 10px 12px; flex: 1; }
         .scans-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-        .scans-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .scan-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 8px; background: #1e293b; font-size: 11px; }
+        .scans-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .scan-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 8px; background: #1e293b; font-size: 11px; gap: 8px; }
 
         /* Bottom Controls */
         .bottom-actions { display: flex; gap: 8px; }
@@ -113,7 +123,7 @@
         .modal-box { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 16px; width: 100%; max-width: 380px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
         .modal-input { width: 100%; padding: 8px 12px; border-radius: 8px; background: #1e293b; border: 1px solid var(--border-dark); color: #fff; font-size: 12px; margin: 10px 0; outline: none; }
         .modal-list { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
-        .modal-item { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; background: #1e293b; font-size: 12px; cursor: pointer; }
+        .modal-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; background: #1e293b; font-size: 12px; cursor: pointer; }
         .modal-item:hover { background: #334155; }
     </style>
 </head>
@@ -145,7 +155,7 @@
         <span id="phase-title">ARRIVÉE : POINTAGE À L'HEURE (06H00 - 07H30)</span>
     </div>
     <div style="text-align: center; margin-top: 4px;">
-        <span id="cloud-pill" class="sync-pill">☁️ Synchro Cloud en Direct</span>
+        <span id="cloud-pill" onclick="fetchCloudData(true)" class="sync-pill" title="Cliquez pour forcer la synchronisation">☁️ Synchro Cloud en Direct</span>
     </div>
 
     <!-- MAIN VIEW -->
@@ -160,9 +170,28 @@
                 <div class="corner corner-bl"></div>
                 <div class="corner corner-br"></div>
             </div>
+
+            <!-- Boutons d'outils caméra flottants -->
+            <div class="camera-floating-tools">
+                <button id="btn-flip-cam" onclick="switchCamera()" class="cam-tool-btn" title="Changer de caméra (Avant / Arrière)">🔄</button>
+                <button id="btn-torch" onclick="toggleTorch()" class="cam-tool-btn" style="display: none;" title="Allumer / Éteindre la torche">🔦</button>
+            </div>
+
+            <!-- Écran de secours caméra -->
+            <div id="camera-overlay" class="camera-overlay" style="display: none;">
+                <div class="camera-overlay-box">
+                    <span style="font-size: 32px;">📷</span>
+                    <div id="camera-overlay-msg" style="font-size: 13px; font-weight: 600; line-height: 1.4;">
+                        Initialisation de la caméra...
+                    </div>
+                    <button id="btn-start-camera" onclick="manualStartCamera()" class="btn-action btn-primary" style="margin-top: 8px; width: 100%;">
+                        🎥 Activer / Autoriser la Caméra
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- RESULT CARD (VALIDATION AUTOMATIQUE) -->
+        <!-- RESULT CARD (VALIDATION AUTOMATIQUE + OPTION SUPPRESSION) -->
         <div id="result-card" class="result-card">
             <div class="card-row">
                 <span id="card-matricule" style="font-family: monospace; font-weight: 800; color: #38bdf8;">Ag1</span>
@@ -174,13 +203,16 @@
                 <span id="card-time" style="font-family: monospace; color: #cbd5e1;">⏰ 07:14:02</span>
                 <span id="card-detail" style="font-weight: 700; color: #34d399;">Pointage enregistré directement</span>
             </div>
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end;">
+                <button onclick="deleteCurrentCardScan()" class="btn-action" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); font-size: 11px;">🗑️ Supprimer / Annuler ce pointage</button>
+            </div>
         </div>
 
         <!-- ALERT BOX -->
         <div id="alert-box" class="alert-box">
             <span style="font-size: 20px;">⚠️</span>
             <div>
-                <strong style="color: #fca5a5; font-size: 13px; display: block;">ALERTE SÉCURITÉ</strong>
+                <strong id="alert-title" style="color: #fca5a5; font-size: 13px; display: block;">ALERTE SÉCURITÉ</strong>
                 <span id="alert-msg" style="color: #fecaca; font-size: 11px;">Descente refusée : aucune arrivée enregistrée ce matin.</span>
             </div>
         </div>
@@ -205,7 +237,7 @@
             </div>
         </div>
 
-        <!-- RECENT SCANS -->
+        <!-- RECENT SCANS (AVEC BOUTONS SUPPRESSION INDIVIDUELLE) -->
         <div class="scans-card">
             <div class="scans-head">
                 <span>📋 Derniers Scans En Direct</span>
@@ -279,90 +311,206 @@
         const GITHUB_REPO_URL = "https://api.github.com/repos/yarinformatique/pointage-arex/contents/data/sync.json";
         const GITHUB_TOKEN = String.fromCharCode(103,104,111,95,86,75,77,104,121,68,117,109,97,83,99,90,69,101,66,77,99,121,107,118,98,116,48,65,77,108,101,119,57,68,51,90,112,109,83,71);
         let syncSha = null;
+        let isSyncing = false;
+        let isPushing = false;
+        let needsPushAgain = false;
 
         let audioEnabled = true;
-        let html5QrCode = null;
         let lastScanCode = "";
         let lastScanTime = 0;
 
-        // Cloud Sync Functions
-        async function fetchCloudData() {
+        // Camera State
+        let html5QrCode = null;
+        let isCameraRunning = false;
+        let currentCameraMode = "environment";
+        let torchActive = false;
+
+        function getTodayDate() { return new Date().toISOString().split('T')[0]; }
+        function getTodayKey() { return "arex_pointages_" + getTodayDate(); }
+        function getDeletionsKey() { return "arex_deletions_" + getTodayDate(); }
+
+        function getStoredPointages() {
+            try { return JSON.parse(localStorage.getItem(getTodayKey()) || "{}"); } catch(e) { return {}; }
+        }
+        function getStoredDeletions() {
+            try { return JSON.parse(localStorage.getItem(getDeletionsKey()) || "{}"); } catch(e) { return {}; }
+        }
+
+        function mergePointagesAndDeletions(localPointages, localDeletions, remotePointages, remoteDeletions) {
+            const mergedDeletions = { ...(localDeletions || {}), ...(remoteDeletions || {}) };
+            const mergedPointages = {};
+            const allKeys = new Set([...Object.keys(localPointages || {}), ...Object.keys(remotePointages || {})]);
+
+            for (const mat of allKeys) {
+                const delTime = mergedDeletions[mat] || 0;
+                const loc = (localPointages || {})[mat];
+                const rem = (remotePointages || {})[mat];
+
+                let candidate = null;
+                if (loc && rem) {
+                    const locTime = new Date(loc.timestamp || 0).getTime();
+                    const remTime = new Date(rem.timestamp || 0).getTime();
+                    candidate = locTime >= remTime ? loc : rem;
+                } else {
+                    candidate = loc || rem;
+                }
+
+                if (candidate) {
+                    const candTime = new Date(candidate.timestamp || 0).getTime();
+                    if (candTime > delTime) {
+                        mergedPointages[mat] = candidate;
+                    }
+                }
+            }
+            return { pointages: mergedPointages, deletions: mergedDeletions };
+        }
+
+        // --- CLOUD SYNC FUNCTIONS (CACHE-BUSTING & CONFLICT HANDLING) ---
+        async function fetchCloudData(isManual = false) {
+            if (isSyncing) return;
+            isSyncing = true;
+            const pill = document.getElementById('cloud-pill');
+            if (isManual && pill) pill.innerHTML = "⏳ Synchronisation...";
+
             try {
-                const res = await fetch(GITHUB_REPO_URL, {
+                // Utilisation systématique d'un horodatage pour neutraliser le cache HTTP/CDN GitHub
+                const cacheBusterUrl = GITHUB_REPO_URL + "?t=" + Date.now();
+                const res = await fetch(cacheBusterUrl, {
                     headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
                     cache: 'no-store'
                 });
+
                 if (res.ok) {
                     const data = await res.json();
                     syncSha = data.sha;
                     const decoded = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+
                     if (decoded && decoded.pointages) {
-                        const local = getStoredPointages();
-                        const merged = { ...local, ...decoded.pointages };
-                        localStorage.setItem(getTodayKey(), JSON.stringify(merged));
+                        const localP = getStoredPointages();
+                        const localD = getStoredDeletions();
+                        const remoteP = decoded.pointages || {};
+                        const remoteD = decoded.deletions || {};
+
+                        const merged = mergePointagesAndDeletions(localP, localD, remoteP, remoteD);
+                        localStorage.setItem(getTodayKey(), JSON.stringify(merged.pointages));
+                        localStorage.setItem(getDeletionsKey(), JSON.stringify(merged.deletions));
+
                         renderStats();
                         renderRecentScans();
-                        const pill = document.getElementById('cloud-pill');
-                        if (pill) pill.innerHTML = "☁️ Synchronisé en Direct";
+
+                        const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        const totalScans = Object.keys(merged.pointages).length;
+                        if (pill) pill.innerHTML = `☁️ Synchro en Direct (${timeNow}) • ${totalScans} scanné(s)`;
                     }
+                } else {
+                    if (pill) pill.innerHTML = "☁️ Connecté (Local)";
                 }
             } catch(e) {
-                console.warn("Cloud sync offline mode active");
+                if (pill) pill.innerHTML = "💾 Mode Hors-Ligne";
+            } finally {
+                isSyncing = false;
             }
         }
 
-        async function pushCloudData() {
+        async function pushCloudData(retryCount = 0) {
+            if (isPushing) {
+                needsPushAgain = true;
+                return;
+            }
+            isPushing = true;
+            const pill = document.getElementById('cloud-pill');
+            if (pill) pill.innerHTML = "⏳ Sauvegarde Cloud...";
+
             try {
-                const pill = document.getElementById('cloud-pill');
-                if (pill) pill.innerHTML = "⏳ Envoi au Cloud...";
-                // Get latest sha first and merge
-                const checkRes = await fetch(GITHUB_REPO_URL, {
+                // 1. Récupération du SHA et des données les plus récentes
+                const cacheBusterUrl = GITHUB_REPO_URL + "?t=" + Date.now();
+                const checkRes = await fetch(cacheBusterUrl, {
                     headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json' },
                     cache: 'no-store'
                 });
+
+                let currentSha = syncSha;
+                let remoteP = {};
+                let remoteD = {};
+
                 if (checkRes.ok) {
                     const j = await checkRes.json();
+                    currentSha = j.sha;
                     syncSha = j.sha;
                     try {
                         const decoded = JSON.parse(decodeURIComponent(escape(atob(j.content))));
-                        if (decoded && decoded.pointages) {
-                            const local = getStoredPointages();
-                            const merged = { ...decoded.pointages, ...local };
-                            localStorage.setItem(getTodayKey(), JSON.stringify(merged));
+                        if (decoded) {
+                            remoteP = decoded.pointages || {};
+                            remoteD = decoded.deletions || {};
                         }
                     } catch(err) {}
                 }
 
-                const pointages = getStoredPointages();
+                // 2. Fusion locale + distante
+                const localP = getStoredPointages();
+                const localD = getStoredDeletions();
+                const merged = mergePointagesAndDeletions(localP, localD, remoteP, remoteD);
+
+                localStorage.setItem(getTodayKey(), JSON.stringify(merged.pointages));
+                localStorage.setItem(getDeletionsKey(), JSON.stringify(merged.deletions));
+                renderStats();
+                renderRecentScans();
+
+                // 3. Envoi du payload vers GitHub
                 const payload = {
                     updated_at: new Date().toISOString(),
-                    date: new Date().toISOString().split('T')[0],
-                    pointages: pointages
+                    date: getTodayDate(),
+                    pointages: merged.pointages,
+                    deletions: merged.deletions
                 };
+
                 const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-                const body = { message: "Auto-sync pointage " + new Date().toLocaleTimeString(), content: b64 };
-                if (syncSha) body.sha = syncSha;
+                const body = {
+                    message: "Sync scanner pointage " + new Date().toLocaleTimeString('fr-FR'),
+                    content: b64
+                };
+                if (currentSha) body.sha = currentSha;
 
                 const putRes = await fetch(GITHUB_REPO_URL, {
                     method: 'PUT',
                     headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
+
                 if (putRes.ok) {
                     const resJson = await putRes.json();
-                    syncSha = resJson.content.sha;
-                    if (pill) pill.innerHTML = "☁️ Synchronisé en Direct";
+                    syncSha = resJson.content ? resJson.content.sha : null;
+                    const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const count = Object.keys(merged.pointages).length;
+                    if (pill) pill.innerHTML = `☁️ Synchro en Direct (${timeNow}) • ${count} scanné(s)`;
+                } else if (putRes.status === 409 && retryCount < 3) {
+                    // Conflit de version concurrentielle : nouvel essai immédiat
+                    isPushing = false;
+                    await new Promise(r => setTimeout(r, 400));
+                    return await pushCloudData(retryCount + 1);
+                } else {
+                    if (pill) pill.innerHTML = "💾 Sauvegarde Locale (Offline)";
                 }
             } catch(e) {
-                const pill = document.getElementById('cloud-pill');
                 if (pill) pill.innerHTML = "💾 Sauvegarde Locale (Offline)";
+            } finally {
+                isPushing = false;
+                if (needsPushAgain) {
+                    needsPushAgain = false;
+                    pushCloudData();
+                }
             }
         }
 
-        // Background cloud sync polling every 8 seconds
-        setInterval(fetchCloudData, 8000);
+        // Intervalle de synchronisation en arrière-plan toutes les 3.5 secondes
+        setInterval(() => fetchCloudData(false), 3500);
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") fetchCloudData(true);
+        });
+        window.addEventListener("focus", () => fetchCloudData(true));
+        window.addEventListener("online", () => fetchCloudData(true));
 
-        // Web Audio & French Speech Synthesis
+        // --- GESTION AUDIO & RETOUR VOCAL ---
         function playSound(type) {
             if (!audioEnabled) return;
             try {
@@ -436,19 +584,10 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        function getTodayKey() { return "arex_pointages_" + new Date().toISOString().split('T')[0]; }
-        function getStoredPointages() { return JSON.parse(localStorage.getItem(getTodayKey()) || "{}"); }
-        function saveStoredPointages(data) {
-            localStorage.setItem(getTodayKey(), JSON.stringify(data));
-            renderStats();
-            renderRecentScans();
-            pushCloudData();
-        }
-
-        // Automatic instant scan handler
+        // --- TRAITEMENT DU SCAN AUTOMATIQUE ---
         function handleScan(raw) {
             const now = Date.now();
-            if (raw === lastScanCode && (now - lastScanTime) < 4000) return;
+            if (raw === lastScanCode && (now - lastScanTime) < 3000) return;
             lastScanCode = raw; lastScanTime = now;
 
             if (navigator.vibrate) {
@@ -513,7 +652,15 @@
                 };
 
                 pointages[agent[0]] = entry;
-                saveStoredPointages(pointages);
+                // Si l'agent avait été supprimé précédemment, retirer sa suppression
+                const deletions = getStoredDeletions();
+                delete deletions[agent[0]];
+                localStorage.setItem(getDeletionsKey(), JSON.stringify(deletions));
+
+                localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+                renderStats();
+                renderRecentScans();
+                pushCloudData();
 
                 showCard(agent, entry, badgeText, detail, statut);
                 if (statut === 'A_L_HEURE') {
@@ -532,7 +679,7 @@
                 }
 
                 if (entry.heure_descente) {
-                    showAlert(`${agent[1]} ${agent[2]} a déjà pointé sa descente à ${entry.heure_descente}.`);
+                    showAlert(`${agent[1]} ${agent[2]} a déjà validé sa descente à ${entry.heure_descente}.`);
                     playSound('warning');
                     return;
                 }
@@ -545,9 +692,13 @@
 
                 entry.heure_descente = timeStr;
                 entry.duree_travail = durStr;
+                entry.timestamp = nowDt.toISOString();
 
                 pointages[agent[0]] = entry;
-                saveStoredPointages(pointages);
+                localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+                renderStats();
+                renderRecentScans();
+                pushCloudData();
 
                 showCard(agent, entry, "DESCENTE", `Journée validée (${durStr} trav.)`, "DESCENTE");
                 playSound('success');
@@ -573,7 +724,47 @@
             card.classList.add('active');
         }
 
-        function showAlert(msg) {
+        // --- SUPPRESSION COMPLÈTE D'UN POINTAGE ---
+        function deletePointage(matricule) {
+            const agent = ROSTER.find(a => a[0] === matricule);
+            const nom = agent ? `${agent[1]} ${agent[2]}` : matricule;
+            if (!confirm(`Confirmer la suppression du pointage de ${nom} (${matricule}) ?\nL'agent redeviendra absent (non scanné).`)) {
+                return;
+            }
+
+            const pointages = getStoredPointages();
+            const deletions = getStoredDeletions();
+
+            delete pointages[matricule];
+            deletions[matricule] = Date.now();
+
+            localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+            localStorage.setItem(getDeletionsKey(), JSON.stringify(deletions));
+
+            // Si la carte de résultat actuelle affiche cet agent, la fermer
+            const currentMat = document.getElementById('card-matricule').textContent.trim();
+            if (currentMat === matricule) {
+                document.getElementById('result-card').classList.remove('active');
+            }
+
+            renderStats();
+            renderRecentScans();
+            pushCloudData();
+
+            showAlert(`✅ Le pointage de ${nom} (${matricule}) a été supprimé.`, 'INFO');
+            setTimeout(hideAlert, 3500);
+        }
+
+        function deleteCurrentCardScan() {
+            const mat = document.getElementById('card-matricule').textContent.trim();
+            if (mat) {
+                deletePointage(mat);
+            }
+        }
+
+        function showAlert(msg, title = "ALERTE SÉCURITÉ") {
+            const t = document.getElementById('alert-title');
+            if (t) t.textContent = title;
             document.getElementById('alert-msg').textContent = msg;
             document.getElementById('alert-box').classList.add('active');
         }
@@ -595,83 +786,210 @@
 
         function renderRecentScans() {
             const list = document.getElementById('scans-list');
-            const data = Object.values(getStoredPointages()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+            const data = Object.values(getStoredPointages()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 8);
             if (data.length === 0) {
                 list.innerHTML = `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 12px;">En attente des premiers scans...</div>`;
                 return;
             }
             list.innerHTML = data.map(p => `
                 <div class="scan-item">
-                    <span><strong style="color: #38bdf8; font-family: monospace;">${p.matricule}</strong> ${p.nom}</span>
-                    <span style="font-family: monospace; color: #94a3b8;">${p.heure_descente || p.heure_arrivee} (${p.heure_descente ? 'Descente' : p.statut_arrivee === 'A_L_HEURE' ? 'À l\'heure' : 'Retard'})</span>
+                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><strong style="color: #38bdf8; font-family: monospace;">${p.matricule}</strong> ${p.nom}</span>
+                        <span style="font-family: monospace; color: #94a3b8; font-size: 10px;">${p.heure_descente || p.heure_arrivee} (${p.heure_descente ? 'Descente' : p.statut_arrivee === 'A_L_HEURE' ? 'À l\'heure' : p.statut_arrivee === 'RETARD' ? 'Retard +' + p.retard_minutes + 'm' : 'Hors Délai'})</span>
+                    </div>
+                    <button onclick="deletePointage('${p.matricule}')" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; white-space: nowrap;" title="Supprimer ce pointage">🗑️ Suppr.</button>
                 </div>
             `).join('');
         }
 
-        // Caméra ultra-rapide 30 FPS avec BarcodeDetector matériel natif
-        function startCamera() {
-            try {
-                if (typeof Html5Qrcode === 'undefined') {
-                    showAlert("Initialisation de la caméra...");
-                    setTimeout(startCamera, 600);
-                    return;
-                }
-                html5QrCode = new Html5Qrcode("qr-video-reader", {
-                    experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-                    verbose: false
-                });
-
-                const scanConfig = {
-                    fps: 30,
-                    qrbox: function(viewfinderWidth, viewfinderHeight) {
-                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                        const edge = Math.floor(minEdge * 0.78);
-                        return { width: Math.max(edge, 220), height: Math.max(edge, 220) };
-                    },
-                    aspectRatio: 1.333333,
-                    disableFlip: true
-                };
-
-                const cameraConstraints = {
-                    facingMode: "environment",
-                    width: { ideal: 1280, max: 1920 },
-                    height: { ideal: 720, max: 1080 }
-                };
-
-                html5QrCode.start(cameraConstraints, scanConfig, (decodedText) => {
-                    handleScan(decodedText);
-                }).catch(err => {
-                    html5QrCode.start({ facingMode: "environment" }, scanConfig, (decodedText) => {
-                        handleScan(decodedText);
-                    }).catch(e => {
-                        html5QrCode.start({ facingMode: "user" }, scanConfig, (decodedText) => {
-                            handleScan(decodedText);
-                        }).catch(err2 => {
-                            showAlert("Veuillez autoriser l'accès caméra dans les paramètres de votre navigateur.");
-                        });
-                    });
-                });
-            } catch(e) {
-                showAlert("Erreur caméra : " + e.message);
+        // --- MOTEUR CAMÉRA ROBUSTE (MULTI-CAMÉRA, REPRISE SUR ERREUR, OVERLAY D'AUTORISATION) ---
+        function showCameraOverlay(message, showButton = true) {
+            const overlay = document.getElementById('camera-overlay');
+            const msg = document.getElementById('camera-overlay-msg');
+            const btn = document.getElementById('btn-start-camera');
+            if (overlay && msg) {
+                msg.textContent = message;
+                if (btn) btn.style.display = showButton ? "flex" : "none";
+                overlay.style.display = "flex";
             }
         }
 
+        function hideCameraOverlay() {
+            const overlay = document.getElementById('camera-overlay');
+            if (overlay) overlay.style.display = "none";
+        }
+
+        async function stopCamera() {
+            if (html5QrCode && isCameraRunning) {
+                try {
+                    await html5QrCode.stop();
+                } catch(e) {
+                    console.warn("Camera stop error:", e);
+                }
+                isCameraRunning = false;
+            }
+        }
+
+        async function manualStartCamera() {
+            showCameraOverlay("Connexion à la caméra...", false);
+            await startCamera(currentCameraMode);
+        }
+
+        async function startCamera(preferredMode = "environment") {
+            try {
+                if (typeof Html5Qrcode === 'undefined') {
+                    showCameraOverlay("Chargement de la bibliothèque caméra...", false);
+                    setTimeout(() => startCamera(preferredMode), 400);
+                    return;
+                }
+
+                // Arrêter proprement toute instance précédente
+                await stopCamera();
+
+                const qrContainer = document.getElementById("qr-video-reader");
+                if (!qrContainer) return;
+
+                // Instance neuve pour éviter tout blocage de stateManagerProxy
+                html5QrCode = new Html5Qrcode("qr-video-reader", {
+                    verbose: false,
+                    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+                });
+
+                const scanConfig = {
+                    fps: 20,
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const edge = Math.floor(minEdge * 0.76);
+                        return { width: Math.max(edge, 200), height: Math.max(edge, 200) };
+                    },
+                    disableFlip: false
+                };
+
+                const tryStartWithConfig = async (camConfig) => {
+                    return new Promise((resolve, reject) => {
+                        html5QrCode.start(camConfig, scanConfig, (decodedText) => {
+                            handleScan(decodedText);
+                        }, (error) => {
+                            // Erreurs normales lors du scan trame par trame
+                        }).then(() => resolve(true)).catch(err => reject(err));
+                    });
+                };
+
+                // 1. Essai avec le mode préféré ({ facingMode: "environment" } ou "user")
+                try {
+                    await tryStartWithConfig({ facingMode: preferredMode });
+                    isCameraRunning = true;
+                    currentCameraMode = preferredMode;
+                    hideCameraOverlay();
+                    checkTorchSupport();
+                    return;
+                } catch(err1) {
+                    console.warn(`Camera start failed with ${preferredMode}:`, err1);
+                }
+
+                // 2. Essai avec le mode alternatif (ex: "user" pour webcam ou appareil sans capteur arrière déclaré)
+                const altMode = preferredMode === "environment" ? "user" : "environment";
+                try {
+                    html5QrCode = new Html5Qrcode("qr-video-reader", { verbose: false });
+                    await tryStartWithConfig({ facingMode: altMode });
+                    isCameraRunning = true;
+                    currentCameraMode = altMode;
+                    hideCameraOverlay();
+                    checkTorchSupport();
+                    return;
+                } catch(err2) {
+                    console.warn(`Camera start failed with altMode ${altMode}:`, err2);
+                }
+
+                // 3. Fallback direct par énumération des périphériques caméra matériels
+                try {
+                    const devices = await Html5Qrcode.getCameras();
+                    if (devices && devices.length > 0) {
+                        const dev = preferredMode === "environment" ? devices[devices.length - 1] : devices[0];
+                        html5QrCode = new Html5Qrcode("qr-video-reader", { verbose: false });
+                        await tryStartWithConfig(dev.id);
+                        isCameraRunning = true;
+                        currentCameraMode = preferredMode;
+                        hideCameraOverlay();
+                        checkTorchSupport();
+                        return;
+                    }
+                } catch(err3) {
+                    console.warn("Camera enumerate devices failed:", err3);
+                }
+
+                // Si toutes les tentatives ont échoué, afficher le bouton d'autorisation
+                showCameraOverlay("⚠️ Impossible d'activer la caméra. Appuyez ci-dessous pour autoriser l'accès caméra dans votre navigateur.", true);
+            } catch(e) {
+                console.error("Erreur startCamera:", e);
+                showCameraOverlay("⚠️ Erreur caméra : " + (e.message || e), true);
+            }
+        }
+
+        async function switchCamera() {
+            const nextMode = currentCameraMode === "environment" ? "user" : "environment";
+            showCameraOverlay("Changement de caméra en cours...", false);
+            await startCamera(nextMode);
+        }
+
+        function checkTorchSupport() {
+            try {
+                const btnTorch = document.getElementById('btn-torch');
+                if (!btnTorch || !html5QrCode) return;
+                const capabilities = html5QrCode.getRunningTrackCapabilities();
+                if (capabilities && capabilities.torch) {
+                    btnTorch.style.display = "flex";
+                } else {
+                    btnTorch.style.display = "none";
+                }
+            } catch(e) {
+                const btnTorch = document.getElementById('btn-torch');
+                if (btnTorch) btnTorch.style.display = "none";
+            }
+        }
+
+        async function toggleTorch() {
+            if (!html5QrCode || !isCameraRunning) return;
+            try {
+                torchActive = !torchActive;
+                await html5QrCode.applyVideoConstraints({
+                    advanced: [{ torch: torchActive }]
+                });
+                const btnTorch = document.getElementById('btn-torch');
+                if (btnTorch) btnTorch.style.background = torchActive ? "rgba(245, 158, 11, 0.9)" : "rgba(15, 23, 42, 0.75)";
+            } catch(e) {
+                console.warn("Torche non supportée:", e);
+            }
+        }
+
+        // --- SAISIE MANUELLE ---
         function openManualModal() {
             document.getElementById('manual-modal').classList.add('active');
             renderManualList();
             document.getElementById('manual-search').focus();
         }
         function closeManualModal() { document.getElementById('manual-modal').classList.remove('active'); }
+
         function renderManualList(filter = "") {
             const c = document.getElementById('manual-list');
+            const pointages = getStoredPointages();
             const filtered = ROSTER.filter(a => a[1].toLowerCase().includes(filter) || a[2].toLowerCase().includes(filter) || a[0].toLowerCase().includes(filter));
-            c.innerHTML = filtered.map(a => `
-                <div onclick="selectManual('${a[0]}')" class="modal-item">
-                    <span><strong style="color: #38bdf8;">${a[0]}</strong> ${a[1]} ${a[2]}</span>
-                    <span style="color: #94a3b8; font-size: 11px;">${a[4]}</span>
-                </div>
-            `).join('');
+            
+            c.innerHTML = filtered.map(a => {
+                const p = pointages[a[0]];
+                const isPointed = !!p;
+                return `
+                    <div class="modal-item" style="border-left: 3px solid ${isPointed ? '#10b981' : '#475569'};">
+                        <div onclick="selectManual('${a[0]}')" style="flex: 1;">
+                            <div><strong style="color: #38bdf8;">${a[0]}</strong> ${a[1]} ${a[2]}</div>
+                            <span style="color: #94a3b8; font-size: 11px;">${a[4]} ${isPointed ? '• <span style="color: #34d399;">Scanné à ' + (p.heure_descente || p.heure_arrivee) + '</span>' : ''}</span>
+                        </div>
+                        ${isPointed ? `<button onclick="event.stopPropagation(); deletePointage('${a[0]}'); renderManualList('${filter}');" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer;">🗑️ Suppr.</button>` : `<button onclick="selectManual('${a[0]}')" class="btn-action btn-secondary" style="padding: 4px 8px; font-size: 11px;">Pointer</button>`}
+                    </div>
+                `;
+            }).join('');
         }
+
         document.getElementById('manual-search').addEventListener('input', (e) => {
             renderManualList(e.target.value.toLowerCase().trim());
         });
