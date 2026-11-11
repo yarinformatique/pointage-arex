@@ -1,0 +1,22 @@
+=== ENVIRONMENT CHECK ===
+node: C:\Program Files\nodejs\node.EXE
+npm: C:\Program Files\nodejs\npm.CMD
+npx: C:\Program Files\nodejs\npx.CMD
+git: C:\Program Files\Git\cmd\git.EXE
+python: C:\Users\USER\AppData\Local\Programs\Python\Python314\python.EXE
+vercel: None
+gh: None
+
+=== GIT STATUS ===
+
+fatal: not a git repository (or any of the parent directories): .git
+
+
+Node version: v24.19.0 (err: )
+
+NPX version: 11.17.0 (err: )
+
+Vercel CLI direct:  (err: 'vercel' nâ€™est pas reconnu en tant que commande interne
+ou externe, un programme exÃ©cutable ou un fichier de commandes.)
+
+DONE!

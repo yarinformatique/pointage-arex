@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.vercel/
+cloudflared.exe
+*.log
+*.tmp
+*.lnk
+cf_*.txt

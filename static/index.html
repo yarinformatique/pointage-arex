@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pointage AREX - Plateforme Moderne de Pointage</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- QR Code Scanning & Generation (Local & Offline) -->
+    <script src="/static/js/html5-qrcode.min.js"></script>
+    <script src="/static/js/qrcode_inline.js"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="brand">
+            <div class="brand-icon">PA</div>
+            <div class="brand-text">
+                <h1>POINTAGE AREX</h1>
+                <p>Génie Civil & BTP &bull; Bobo-Dioulasso, Burkina Faso</p>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <div class="nav-clock" id="live-clock">
+                <span class="pulse-dot"></span> --:--:--
+            </div>
+            <button class="btn btn-secondary" id="toggle-sound-btn" onclick="toggleSound()" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
+                🔊 Son : ON
+            </button>
+            <button class="btn btn-secondary" id="toggle-voice-btn" onclick="toggleVoice()" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
+                🗣️ Voix : ON
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="scanner">
+            📱 Scanner Badges (Promoteur)
+        </button>
+        <button class="tab-btn" data-tab="dashboard">
+            📊 Tableau de Bord (Direct)
+        </button>
+        <button class="tab-btn" data-tab="monthly">
+            📈 Synthèse Mensuelle
+        </button>
+        <button class="tab-btn" data-tab="badges">
+            🪪 Badges QR & Impression
+        </button>
+        <button class="tab-btn" data-tab="settings">
+            ⚙️ Paramètres & Horaires
+        </button>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- ===================================================================
+             PANE 1: SCANNER BADGES (ÉCRAN PROMOTEUR)
+             =================================================================== -->
+        <section id="pane-scanner" class="tab-pane active">
+            <div class="scanner-grid">
+                
+                <!-- Left Column: Camera Viewfinder & Douchette -->
+                <div class="card">
+                    <div style="margin-bottom:1rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.6rem 1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                        <span style="font-size:0.85rem; color:#1e40af; font-weight:600;">📱 Promoteur sur smartphone ?</span>
+                        <a href="/scanner" class="btn btn-primary" style="font-size:0.75rem; padding:0.35rem 0.75rem; text-decoration:none;">
+                            🚀 Ouvrir l'Application Scanner Mobile Pure
+                        </a>
+                    </div>
+
+                    <div class="card-title">
+                        <span>📹 Caméra Scanner QR Code</span>
+                        <span id="camera-status" style="font-size:0.8rem; color:#10b981; font-weight:600;">Caméra active</span>
+                    </div>
+
+                    <div class="scanner-viewfinder">
+                        <div id="reader"></div>
+                    </div>
+
+                    <!-- Douchette & Saisie Manuelle -->
+                    <div style="margin-top:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:700; color:#475569; display:block; margin-bottom:0.4rem;">
+                            ⚡ Lecteur Douchette USB / Saisie Rapide :
+                        </label>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="text" id="quick-scan-input" class="form-input" style="flex:1;" 
+                                   placeholder="Scannez avec la douchette ou tapez Ag1, Ag15, Nom..." autofocus>
+                            <button class="btn btn-primary" onclick="submitManualInput()">Valider</button>
+                        </div>
+                        <p style="font-size:0.75rem; color:#64748b; margin-top:0.35rem;">
+                            Compatible avec vos anciens QR codes Google Forms, matricules directs et douchettes USB.
+                        </p>
+                    </div>
+
+                    <!-- Simulation / Tests rapides pour vérification des règles -->
+                    <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px dashed #e2e8f0;">
+                        <span style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:0.5rem;">
+                            🧪 Simulation & Démonstration des règles d'heures :
+                        </span>
+                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
+                                    onclick="simulateScan('Ag1', '07:10:00')">07:10 (À l'heure)</button>
+                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
+                                    onclick="simulateScan('Ag2', '08:15:00')">08:15 (Retard)</button>
+                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
+                                    onclick="simulateScan('Ag3', '09:25:00')">09:25 (Hors délai)</button>
+                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
+                                    onclick="simulateScan('Ag1', '16:30:00')">16:30 (Descente)</button>
+                            <button class="btn btn-danger" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
+                                    onclick="simulateScan('Ag10', '16:45:00')">16:45 SANS ARRIVÉE (Alerte Sécurité !)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Scan Result Card & Instructions -->
+                <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                    <div class="card-title">
+                        <span>📋 Dernier Pointage Enregistré</span>
+                        <span style="font-size:0.8rem; color:#64748b;">Automatique</span>
+                    </div>
+
+                    <div id="scan-result-card" class="scan-display-card">
+                        <div class="agent-avatar">?</div>
+                        <div class="agent-name">Prêt pour le Scan</div>
+                        <div class="agent-role">Présentez le badge de l'agent devant la caméra</div>
+                        <div class="status-badge" style="background:#e2e8f0; color:#475569;">EN ATTENTE</div>
+                        <p class="status-submsg">Le pointage s'effectue instantanément au passage du badge.</p>
+                    </div>
+
+                    <!-- Rappel des Horaires Configurés -->
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem; margin-top:1.5rem;">
+                        <div style="font-size:0.82rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem;">
+                            🕒 RÈGLES DE POINTAGE EN VIGUEUR :
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.8rem;">
+                            <div>🟢 <strong>06h00 - 07h30</strong> : À l'heure</div>
+                            <div>🟡 <strong>07h30 - 09h00</strong> : Retard</div>
+                            <div>🔴 <strong>Au-delà de 09h00</strong> : Hors délai</div>
+                            <div>🔵 <strong>À partir de 16h00</strong> : Descente</div>
+                        </div>
+                        <div style="margin-top:0.5rem; font-size:0.75rem; color:#b91c1c; font-weight:600;">
+                            🛡️ Sécurité : Toute descente scannée sans arrivée le matin est immédiatement signalée comme anomalie.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             PANE 2: TABLEAU DE BORD DU JOUR (TEMPS RÉEL)
+             =================================================================== -->
+        <section id="pane-dashboard" class="tab-pane">
+            
+            <!-- Alertes de Sécurité (Anomalies) -->
+            <div id="anomalies-container" style="display:none;"></div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card kpi-total">
+                    <div class="kpi-label">Effectif Total</div>
+                    <div class="kpi-value" id="kpi-total">68</div>
+                    <div class="kpi-sub">Agents enregistrés</div>
+                </div>
+                <div class="kpi-card kpi-presents">
+                    <div class="kpi-label">Présents Aujourd'hui</div>
+                    <div class="kpi-value" id="kpi-presents">0</div>
+                    <div class="kpi-sub">Arrivées enregistrées</div>
+                </div>
+                <div class="kpi-card kpi-ponctuel">
+                    <div class="kpi-label">À l'Heure</div>
+                    <div class="kpi-value" id="kpi-ponctuel">0</div>
+                    <div class="kpi-sub">Avant 07h30</div>
+                </div>
+                <div class="kpi-card kpi-retard">
+                    <div class="kpi-label">En Retard</div>
+                    <div class="kpi-value" id="kpi-retards">0</div>
+                    <div class="kpi-sub">07h30 &agrave; 09h00</div>
+                </div>
+                <div class="kpi-card kpi-hors-delai">
+                    <div class="kpi-label">Hors Délai</div>
+                    <div class="kpi-value" id="kpi-hors-delai">0</div>
+                    <div class="kpi-sub">Apr&egrave;s 09h00</div>
+                </div>
+                <div class="kpi-card kpi-descentes">
+                    <div class="kpi-label">Descentes Faites</div>
+                    <div class="kpi-value" id="kpi-descentes">0</div>
+                    <div class="kpi-sub">Sorties valid&eacute;es</div>
+                </div>
+                <div class="kpi-card kpi-anomalies">
+                    <div class="kpi-label">Anomalies Sécurité</div>
+                    <div class="kpi-value" id="kpi-anomalies">0</div>
+                    <div class="kpi-sub">Descentes sans arriv&eacute;e</div>
+                </div>
+                <div class="kpi-card kpi-absents">
+                    <div class="kpi-label">Absents du Jour</div>
+                    <div class="kpi-value" id="kpi-absents">68</div>
+                    <div class="kpi-sub">Non point&eacute;s</div>
+                </div>
+            </div>
+
+            <!-- Agents List Card -->
+            <div class="card">
+                <div class="card-title">
+                    <span>👥 Registre des Pointages du Jour</span>
+                    <div style="display:flex; gap:0.5rem;">
+                        <input type="date" id="dash-date-picker" class="form-input" style="padding:0.4rem 0.6rem; font-size:0.85rem;" 
+                               onchange="onDateChanged(this.value)">
+                        <button class="btn btn-success" onclick="downloadDailyCSV()">
+                            📥 Exporter Excel/CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <input type="text" id="dash-search" class="form-input" style="width:260px;" 
+                           placeholder="Rechercher nom, matricule, métier..." oninput="renderDashboardTableFromCache()">
+                    
+                    <select id="dash-status-filter" class="form-input" onchange="renderDashboardTableFromCache()">
+                        <option value="ALL">Tous les statuts</option>
+                        <option value="PRESENT">Présents uniquement</option>
+                        <option value="A_L_HEURE">À l'heure</option>
+                        <option value="RETARD">En retard</option>
+                        <option value="HORS_DELAI">Hors délai</option>
+                        <option value="DESCENTE">Descentes effectuées</option>
+                        <option value="ANOMALIE">Anomalies sécurité</option>
+                        <option value="ABSENT">Absents</option>
+                    </select>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Nom & Prénom</th>
+                                <th>Fonction / Métier</th>
+                                <th>Arrivée</th>
+                                <th>Descente</th>
+                                <th>Statut du Jour</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-tbody">
+                            <tr><td colspan="7" style="text-align:center; padding:2rem; color:#64748b;">Chargement des données...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             PANE 3: SYNTHÈSE MENSUELLE (FORMAT GOOGLE SHEETS)
+             =================================================================== -->
+        <section id="pane-monthly" class="tab-pane">
+            <div class="card">
+                <div class="card-title">
+                    <span>📈 Synthèse Mensuelle des Présences & Absences</span>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <select id="monthly-month" class="form-input" onchange="loadMonthly()">
+                            <option value="1">Janvier</option>
+                            <option value="2">Février</option>
+                            <option value="3">Mars</option>
+                            <option value="4">Avril</option>
+                            <option value="5">Mai</option>
+                            <option value="6">Juin</option>
+                            <option value="7">Juillet</option>
+                            <option value="8">Août</option>
+                            <option value="9">Septembre</option>
+                            <option value="10">Octobre</option>
+                            <option value="11" selected>Novembre</option>
+                            <option value="12">Décembre</option>
+                        </select>
+                        <select id="monthly-year" class="form-input" onchange="loadMonthly()">
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
+                        </select>
+                        <button class="btn btn-success" onclick="downloadMonthlyCSV()">
+                            📥 Exporter Synthèse Excel/CSV
+                        </button>
+                    </div>
+                </div>
+
+                <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem;">
+                    Ce tableau récapitule exactement la structure de votre ancien Google Sheets (Pointage Arex - Tableau de Bord).
+                </p>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Identité Agent</th>
+                                <th>Fonction</th>
+                                <th>À l'Heure</th>
+                                <th>Retards</th>
+                                <th>Hors Délai</th>
+                                <th>Descentes</th>
+                                <th>Total Présences</th>
+                                <th>Absences</th>
+                                <th>Heures Cumulées</th>
+                                <th>Assiduité</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-tbody">
+                            <tr><td colspan="11" style="text-align:center; padding:2rem; color:#64748b;">Chargement de la synthèse mensuelle...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             PANE 4: BADGES QR & IMPRESSION
+             =================================================================== -->
+        <section id="pane-badges" class="tab-pane">
+            <div class="card no-print">
+                <div class="card-title">
+                    <span>🪪 Générateur & Impression des Badges QR Code</span>
+                    <button class="btn btn-primary" onclick="window.print()">
+                        🖨️ Imprimer la Planche de Badges (Format A4)
+                    </button>
+                </div>
+                <p style="font-size:0.85rem; color:#64748b;">
+                    Badges générés pour les 68 agents d'AREX. Chaque badge intègre le QR code officiel scannable directement par la plateforme.
+                </p>
+            </div>
+
+            <div class="badges-grid" id="badges-container">
+                <!-- Badges dynamically rendered here -->
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             PANE 5: PARAMÈTRES & HORAIRES
+             =================================================================== -->
+        <section id="pane-settings" class="tab-pane">
+            <div class="card" style="max-width:700px; margin:0 auto;">
+                <div class="card-title">
+                    <span>⚙️ Configuration des Horaires & Sécurité</span>
+                </div>
+
+                <form onsubmit="saveSettings(event)">
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                            Nom de l'Entreprise / Chantier :
+                        </label>
+                        <input type="text" id="cfg-nom" class="form-input" style="width:100%;">
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                                Début d'Arrivée :
+                            </label>
+                            <input type="time" id="cfg-arr-debut" class="form-input" style="width:100%;">
+                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 06:00</span>
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                                Limite Ponctualité (À l'heure) :
+                            </label>
+                            <input type="time" id="cfg-arr-limite" class="form-input" style="width:100%;">
+                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 07:30</span>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                                Limite Retard (Hors délai après) :
+                            </label>
+                            <input type="time" id="cfg-ret-limite" class="form-input" style="width:100%;">
+                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 09:00</span>
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                                Début de Descente Autorisée :
+                            </label>
+                            <input type="time" id="cfg-des-debut" class="form-input" style="width:100%;">
+                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 16:00</span>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                                Anti-Rebond (Secondes) :
+                            </label>
+                            <input type="number" id="cfg-antirebond" class="form-input" style="width:100%;" min="10" max="300">
+                            <span style="font-size:0.75rem; color:#64748b;">Empêche les doubles scans rapprochés</span>
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
+                                Code PIN Superviseur :
+                            </label>
+                            <input type="password" id="cfg-pin" class="form-input" style="width:100%;">
+                            <span style="font-size:0.75rem; color:#64748b;">Pour forcer ou régulariser un pointage</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        💾 Enregistrer les Paramètres
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- HELPER SCRIPT FOR UI BUTTONS -->
+    <script>
+        let cachedDashboardData = null;
+
+        function submitManualInput() {
+            const input = document.getElementById('quick-scan-input');
+            const val = input.value.trim();
+            if (val) {
+                handleScanInput(val, 'MANUEL');
+                input.value = '';
+            }
+        }
+
+        function simulateScan(badgeCode, simTime) {
+            handleScanInput(badgeCode, 'SIMULATION', simTime);
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('toggle-sound-btn').textContent = state.soundEnabled ? '🔊 Son : ON' : '🔇 Son : OFF';
+        }
+
+        function toggleVoice() {
+            state.voiceEnabled = !state.voiceEnabled;
+            document.getElementById('toggle-voice-btn').textContent = state.voiceEnabled ? '🗣️ Voix : ON' : '🔇 Voix : OFF';
+        }
+
+        function onDateChanged(newDate) {
+            state.selectedDate = newDate;
+            loadDashboard();
+        }
+
+        function renderDashboardTableFromCache() {
+            if (cachedDashboardData && cachedDashboardData.agents_table) {
+                renderDashboardTable(cachedDashboardData.agents_table);
+            }
+        }
+
+        // Hook renderDashboard to cache data
+        const origRenderDashboard = renderDashboard;
+        renderDashboard = function(data) {
+            cachedDashboardData = data;
+            origRenderDashboard(data);
+        };
+
+        function downloadDailyCSV() {
+            window.location.href = `/api/export/daily?date=${state.selectedDate}`;
+        }
+
+        function downloadMonthlyCSV() {
+            const year = document.getElementById('monthly-year')?.value || state.selectedYear;
+            const month = document.getElementById('monthly-month')?.value || state.selectedMonth;
+            window.location.href = `/api/export/monthly?year=${year}&month=${month}`;
+        }
+
+        // Set date picker default to today
+        document.addEventListener('DOMContentLoaded', () => {
+            const dp = document.getElementById('dash-date-picker');
+            if (dp) dp.value = state.selectedDate;
+        });
+    </script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

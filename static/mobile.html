@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AREX Scanner - Pointage Chantier</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/html5-qrcode.min.js"></script>
+    <script src="/static/js/qrcode_inline.js"></script>
+    <style>
+        body {
+            background: #0f172a;
+            color: #ffffff;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .mobile-header {
+            background: #1e293b;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .mobile-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .mobile-logo-badge {
+            background: #2563eb;
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.9rem;
+            padding: 0.3rem 0.55rem;
+            border-radius: 6px;
+        }
+        .mobile-title h1 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 0;
+            color: #f8fafc;
+        }
+        .phase-banner {
+            padding: 0.5rem 1rem;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.3s;
+        }
+        .phase-a-l-heure { background: #065f46; color: #a7f3d0; }
+        .phase-retard { background: #92400e; color: #fde68a; }
+        .phase-hors-delai { background: #991b1b; color: #fecaca; }
+        .phase-descente { background: #075985; color: #bae6fd; }
+
+        .scanner-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .camera-box {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 2px solid #334155;
+            min-height: 290px;
+        }
+        #mobile-reader {
+            width: 100% !important;
+            border: none !important;
+        }
+        .camera-overlay-reticle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 12px;
+            pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.3);
+        }
+        .camera-overlay-reticle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #38bdf8;
+            box-shadow: 0 0 8px #38bdf8;
+            animation: scanLaser 2s infinite ease-in-out;
+        }
+        @keyframes scanLaser {
+            0% { top: 0; opacity: 0.8; }
+            50% { top: 100%; opacity: 1; }
+            100% { top: 0; opacity: 0.8; }
+        }
+
+        .camera-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .cam-btn {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            padding: 0.55rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        /* RESULT CARD */
+        .mobile-result {
+            margin-top: 0.85rem;
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            transition: all 0.3s;
+        }
+        .mobile-result.success { border-color: #10b981; background: #064e3b; }
+        .mobile-result.warning { border-color: #f59e0b; background: #78350f; }
+        .mobile-result.danger { border-color: #ef4444; background: #7f1d1d; }
+        .mobile-result.departure { border-color: #0284c7; background: #0c4a6e; }
+        .mobile-result.alarm { border-color: #dc2626; background: #881337; animation: shake 0.4s; }
+
+        .result-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #334155;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            border: 2px solid #fff;
+        }
+        .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .result-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .result-meta {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin-top: 0.15rem;
+        }
+        .result-status-tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-top: 0.35rem;
+        }
+        .tag-success { background: #10b981; color: #fff; }
+        .tag-warning { background: #f59e0b; color: #fff; }
+        .tag-danger { background: #ef4444; color: #fff; }
+        .tag-departure { background: #0284c7; color: #fff; }
+        .tag-alarm { background: #e11d48; color: #fff; }
+
+        /* MANUAL INPUT */
+        .manual-box {
+            margin-top: 0.85rem;
+            display: flex;
+            gap: 0.4rem;
+        }
+        .manual-input {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 0.65rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            flex: 1;
+            outline: none;
+        }
+        .manual-input:focus { border-color: #38bdf8; }
+
+        .footer-link {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.78rem;
+            color: #94a3b8;
+        }
+        .footer-link a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP HEADER -->
+    <header class="mobile-header">
+        <div class="mobile-title">
+            <span class="mobile-logo-badge">AREX</span>
+            <div>
+                <h1>Pointage Promoteur</h1>
+                <div style="font-size:0.7rem; color:#94a3b8;" id="mob-live-clock">--:--:--</div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:0.4rem;">
+            <button class="cam-btn" id="mob-sound-btn" onclick="toggleMobSound()" style="padding:0.4rem 0.6rem; font-size:0.75rem;">
+                🔊 ON
+            </button>
+            <button class="cam-btn" id="mob-voice-btn" onclick="toggleMobVoice()" style="padding:0.4rem 0.6rem; font-size:0.75rem;">
+                🗣️ ON
+            </button>
+        </div>
+    </header>
+
+    <!-- PHASE ACTUELLE -->
+    <div id="phase-banner" class="phase-banner phase-a-l-heure">
+        <span class="pulse-dot"></span> <span id="phase-text">Phase : ARRIVÉE À L'HEURE (06h00 - 07h30)</span>
+    </div>
+
+    <!-- MAIN SCANNER CONTAINER -->
+    <main class="scanner-container">
+        
+        <!-- Camera Viewfinder -->
+        <div class="camera-box">
+            <div id="mobile-reader"></div>
+            <div class="camera-overlay-reticle"></div>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="camera-actions">
+            <button class="cam-btn" onclick="switchCamera()">
+                🔄 Changer de Caméra
+            </button>
+            <button class="cam-btn" onclick="toggleTorch()">
+                🔦 Flash / Torche
+            </button>
+        </div>
+
+        <!-- Scan Result Card (Dynamic) -->
+        <div id="mobile-result-box" class="mobile-result">
+            <div class="result-avatar" id="res-avatar">📷</div>
+            <div class="result-info">
+                <div class="result-name" id="res-name">Prêt pour le scan</div>
+                <div class="result-meta" id="res-meta">Pointez la caméra vers le badge QR de l'agent</div>
+                <div class="result-status-tag" id="res-tag" style="background:#334155; color:#cbd5e1;">EN ATTENTE</div>
+            </div>
+        </div>
+
+        <!-- Douchette / Saisie rapide -->
+        <div class="manual-box">
+            <input type="text" id="mob-manual-input" class="manual-input" 
+                   placeholder="Code Ag1..68 ou bip douchette..." autocomplete="off">
+            <button class="cam-btn" style="flex:initial; padding:0 1rem; background:#2563eb; color:#fff;" onclick="submitMobManual()">
+                Valider
+            </button>
+        </div>
+
+        <!-- Switch to Dashboard Link -->
+        <div class="footer-link">
+            Promoteur de chantier &bull; Bobo-Dioulasso<br>
+            <a href="/" target="_blank">📊 Accéder au Tableau de Bord &bull; Administration</a>
+        </div>
+
+    </main>
+
+    <script>
+        let mobSound = true;
+        let mobVoice = true;
+        let qrScanner = null;
+        let currentFacingMode = "environment";
+        let torchActive = false;
+        let scanCooldown = false;
+
+        // Audio Context
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!mobSound) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                if (type === 'success') {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+                    g.gain.setValueAtTime(0.3, now);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(now); osc.stop(now + 0.35);
+                } else if (type === 'warning') {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(370, now + 0.12);
+                    g.gain.setValueAtTime(0.35, now);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(now); osc.stop(now + 0.45);
+                } else if (type === 'danger' || type === 'alarm') {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.setValueAtTime(440, now + 0.15);
+                    g.gain.setValueAtTime(0.4, now);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(now); osc.stop(now + 0.55);
+                } else if (type === 'departure') {
+                    [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        g.gain.setValueAtTime(0.25, now + idx * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.4);
+                        osc.connect(g); g.connect(ctx.destination);
+                        osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.4);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function speak(text) {
+            if (!mobVoice || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'fr-FR';
+                window.speechSynthesis.speak(u);
+            } catch (e) {}
+        }
+
+        // Live Clock & Phase Banner
+        function updateClockAndPhase() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('mob-live-clock').textContent = timeStr;
+
+            const curH = now.getHours();
+            const curM = now.getMinutes();
+            const totalMin = curH * 60 + curM;
+
+            const banner = document.getElementById('phase-banner');
+            const pText = document.getElementById('phase-text');
+
+            if (totalMin >= 360 && totalMin <= 450) { // 06:00 - 07:30
+                banner.className = 'phase-banner phase-a-l-heure';
+                pText.textContent = "🟢 ARRIVÉE À L'HEURE (06h00 - 07h30)";
+            } else if (totalMin > 450 && totalMin <= 540) { // 07:30 - 09:00
+                banner.className = 'phase-banner phase-retard';
+                pText.textContent = "🟡 ARRIVÉE EN RETARD (07h30 - 09h00)";
+            } else if (totalMin > 540 && totalMin < 960) { // 09:00 - 16:00
+                banner.className = 'phase-banner phase-hors-delai';
+                pText.textContent = "🔴 ARRIVÉE HORS DÉLAI (Après 09h00)";
+            } else { // 16:00+
+                banner.className = 'phase-banner phase-descente';
+                pText.textContent = "🔵 DESCENTE AUTORISÉE (À partir de 16h00)";
+            }
+        }
+        setInterval(updateClockAndPhase, 1000);
+        updateClockAndPhase();
+
+        // Start Camera
+        function initCamera(facing) {
+            if (qrScanner) {
+                qrScanner.stop().then(() => startCameraInstance(facing)).catch(() => startCameraInstance(facing));
+            } else {
+                startCameraInstance(facing);
+            }
+        }
+
+        function startCameraInstance(facing) {
+            qrScanner = new Html5Qrcode("mobile-reader");
+            qrScanner.start(
+                { facingMode: facing },
+                { fps: 12, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+                (decodedText) => onScanSuccess(decodedText),
+                () => {}
+            ).catch(err => {
+                console.warn('Camera err:', err);
+            });
+        }
+
+        function switchCamera() {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            initCamera(currentFacingMode);
+        }
+
+        function toggleTorch() {
+            // Some devices support torch via constraints
+            if (qrScanner && qrScanner.applyVideoConstraints) {
+                torchActive = !torchActive;
+                qrScanner.applyVideoConstraints({ advanced: [{ torch: torchActive }] }).catch(() => {});
+            }
+        }
+
+        function onScanSuccess(text) {
+            if (scanCooldown) return;
+            scanCooldown = true;
+            setTimeout(() => { scanCooldown = false; }, 1500);
+
+            sendScan(text);
+        }
+
+        function submitMobManual() {
+            const input = document.getElementById('mob-manual-input');
+            const val = input.value.trim();
+            if (val) {
+                sendScan(val);
+                input.value = '';
+            }
+        }
+
+        document.getElementById('mob-manual-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitMobManual();
+            }
+        });
+
+        // Douchette listener
+        let bBuf = '';
+        let bTime = 0;
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.id === 'mob-manual-input') return;
+            const now = Date.now();
+            if (now - bTime > 150) bBuf = '';
+            bTime = now;
+            if (e.key === 'Enter') {
+                if (bBuf.length >= 3) {
+                    sendScan(bBuf);
+                    bBuf = '';
+                }
+            } else if (e.key.length === 1) {
+                bBuf += e.key;
+            }
+        });
+
+        async function sendScan(scanData) {
+            try {
+                const resp = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scan_input: scanData, mode_scan: 'MOBILE_CAMERA' })
+                });
+                const res = await resp.json();
+                renderMobileResult(res);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderMobileResult(res) {
+            const box = document.getElementById('mobile-result-box');
+            const avatar = document.getElementById('res-avatar');
+            const name = document.getElementById('res-name');
+            const meta = document.getElementById('res-meta');
+            const tag = document.getElementById('res-tag');
+
+            box.className = 'mobile-result';
+
+            if (!res.success && res.status === 'AGENT_INCONNU') {
+                box.classList.add('alarm');
+                avatar.textContent = '❌';
+                name.textContent = 'Badge Inconnu';
+                meta.textContent = res.message;
+                tag.className = 'result-status-tag tag-danger';
+                tag.textContent = 'NON RECONNU';
+                playSound('danger');
+                speak('Badge inconnu');
+                return;
+            }
+
+            const a = res.agent;
+            const pt = res.pointage;
+            avatar.textContent = `${a.nom.charAt(0)}${a.prenom.charAt(0)}`.toUpperCase();
+            name.textContent = `${a.matricule} • ${a.nom} ${a.prenom}`;
+
+            if (res.status === 'ANOMALIE_SECURITE') {
+                box.classList.add('alarm');
+                meta.textContent = `Alerte : Descente à ${pt.heure_descente?.substring(0,5)} SANS ARRIVÉE LE MATIN !`;
+                tag.className = 'result-status-tag tag-alarm';
+                tag.textContent = 'ANOMALIE SÉCURITÉ';
+                playSound('alarm');
+                speak(`Alerte sécurité, ${a.prenom}, arrivée manquante`);
+            } else if (res.status === 'SUCCESS_ARRIVEE') {
+                if (res.statut_arrivee === 'A_L_HEURE') {
+                    box.classList.add('success');
+                    meta.textContent = `Arrivée à ${pt.heure_arrivee?.substring(0,5)} • Ponctualité parfaite`;
+                    tag.className = 'result-status-tag tag-success';
+                    tag.textContent = "À L'HEURE";
+                    playSound('success');
+                    speak(`Bienvenue ${a.prenom}, à l'heure`);
+                } else if (res.statut_arrivee === 'RETARD') {
+                    box.classList.add('warning');
+                    meta.textContent = `Arrivée à ${pt.heure_arrivee?.substring(0,5)} • +${res.minutes_retard} min de retard`;
+                    tag.className = 'result-status-tag tag-warning';
+                    tag.textContent = `RETARD (+${res.minutes_retard}m)`;
+                    playSound('warning');
+                    speak(`Arrivée en retard, ${a.prenom}`);
+                } else {
+                    box.classList.add('danger');
+                    meta.textContent = `Arrivée à ${pt.heure_arrivee?.substring(0,5)} • Après 09h00`;
+                    tag.className = 'result-status-tag tag-danger';
+                    tag.textContent = 'HORS DÉLAI';
+                    playSound('danger');
+                    speak(`Arrivée hors délai, ${a.prenom}`);
+                }
+            } else if (res.status === 'SUCCESS_DESCENTE') {
+                box.classList.add('departure');
+                meta.textContent = `Descente à ${pt.heure_descente?.substring(0,5)} • Temps: ${Math.floor(pt.temps_travail_minutes/60)}h${pt.temps_travail_minutes%60}m`;
+                tag.className = 'result-status-tag tag-departure';
+                tag.textContent = 'DESCENTE VALIDÉE';
+                playSound('departure');
+                speak(`Bonne soirée ${a.prenom}`);
+            } else if (res.status === 'ANTI_REBOND' || res.status === 'DEJA_COMPLET') {
+                box.classList.add('departure');
+                meta.textContent = res.message;
+                tag.className = 'result-status-tag tag-departure';
+                tag.textContent = 'DÉJÀ ENREGISTRÉ';
+            } else if (res.status === 'DEPART_ANTICIPE_BLOQUE') {
+                box.classList.add('warning');
+                meta.textContent = res.message;
+                tag.className = 'result-status-tag tag-warning';
+                tag.textContent = 'TROP TÔT (AVANT 16H)';
+                playSound('warning');
+                speak('Descente avant 16 heures non autorisée');
+            }
+        }
+
+        function toggleMobSound() {
+            mobSound = !mobSound;
+            document.getElementById('mob-sound-btn').textContent = mobSound ? '🔊 ON' : '🔇 OFF';
+        }
+
+        function toggleMobVoice() {
+            mobVoice = !mobVoice;
+            document.getElementById('mob-voice-btn').textContent = mobVoice ? '🗣️ ON' : '🔇 OFF';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCamera("environment");
+        });
+    </script>
+</body>
+</html>

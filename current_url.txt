@@ -1,0 +1,2 @@
+SCANNER=https://api.trycloudflare.com/scanner
+ADMIN=https://api.trycloudflare.com/

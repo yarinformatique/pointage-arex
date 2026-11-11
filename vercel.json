@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/scanner",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/mobile",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/scan",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "postgresql://postgres.ehcciiewrnrswajeczus:64582202yarinformatique@aws-1-eu-west-3.pooler.supabase.com:6543/postgres?pgbouncer=true"
+  }
+}
