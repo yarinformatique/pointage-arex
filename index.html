@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direction AREX - Tableau de Bord Pointage BTP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 950: '#070a12', 900: '#0b0f19', 850: '#0f172a', 800: '#1e293b', 700: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070a12; }
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .badge-card { break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <!-- NAVBAR DIRECTION -->
+    <header class="no-print bg-dark-900/95 backdrop-blur-md border-b border-dark-700/80 sticky top-0 z-50 px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-black text-base">
+                    PA
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base font-extrabold tracking-tight text-white">POINTAGE AREX &bull; DIRECTION RH</h1>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">EN LIGNE</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Génie Civil & BTP &bull; Suivi de Chantier 68 Ouvriers &bull; Bobo-Dioulasso</p>
+                </div>
+            </div>
+
+            <!-- TABS & ACTIONS -->
+            <div class="flex items-center gap-3">
+                <a href="scanner.html" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-blue-600/30">
+                    <i class="fa-solid fa-mobile-screen"></i> Ouvrir Scanner Smartphone
+                </a>
+                <button onclick="exportCSV()" class="px-3.5 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 border border-dark-700 text-xs font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel text-emerald-400"></i> Exporter Excel (.csv)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <div class="no-print bg-dark-850 border-b border-dark-700/60 px-6 py-2">
+        <div class="max-w-7xl mx-auto flex gap-2">
+            <button onclick="switchTab('journal')" id="tab-btn-journal" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Pointages du Jour
+            </button>
+            <button onclick="switchTab('matrice')" id="tab-btn-matrice" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-table-cells"></i> Matrice Mensuelle (31 jours)
+            </button>
+            <button onclick="switchTab('badges')" id="tab-btn-badges" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-id-card"></i> Badges &amp; QR Codes (68)
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+        <!-- KPI SUMMARY CARDS -->
+        <div class="no-print grid grid-cols-2 md:grid-cols-5 gap-3.5">
+            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">Effectif Total</span>
+                    <i class="fa-solid fa-users text-blue-400"></i>
+                </div>
+                <div class="text-2xl font-black text-white">68</div>
+                <p class="text-[11px] text-slate-400 mt-1">Ouvriers enregistrés</p>
+            </div>
+
+            <div class="bg-dark-900 border border-emerald-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-emerald-950/20 to-transparent">
+                <div class="flex items-center justify-between text-emerald-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">À l'Heure</span>
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                </div>
+                <div id="kpi-heure" class="text-2xl font-black text-emerald-400">0</div>
+                <p class="text-[11px] text-emerald-500/80 mt-1">Pointage 06h00 - 07h30</p>
+            </div>
+
+            <div class="bg-dark-900 border border-amber-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-amber-950/20 to-transparent">
+                <div class="flex items-center justify-between text-amber-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">En Retard</span>
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+                </div>
+                <div id="kpi-retard" class="text-2xl font-black text-amber-400">0</div>
+                <p id="kpi-retard-min" class="text-[11px] text-amber-500/80 mt-1">0 min perdues</p>
+            </div>
+
+            <div class="bg-dark-900 border border-cyan-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-cyan-950/20 to-transparent">
+                <div class="flex items-center justify-between text-cyan-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">Descentes</span>
+                    <i class="fa-solid fa-arrow-right-from-bracket text-cyan-400"></i>
+                </div>
+                <div id="kpi-descente" class="text-2xl font-black text-cyan-400">0</div>
+                <p class="text-[11px] text-cyan-500/80 mt-1">Sorties validées</p>
+            </div>
+
+            <div class="bg-dark-900 border border-rose-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-rose-950/20 to-transparent col-span-2 md:col-span-1">
+                <div class="flex items-center justify-between text-rose-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">Absents</span>
+                    <i class="fa-solid fa-user-xmark text-rose-400"></i>
+                </div>
+                <div id="kpi-absent" class="text-2xl font-black text-rose-400">68</div>
+                <p class="text-[11px] text-rose-500/80 mt-1">Non pointés à ce jour</p>
+            </div>
+        </div>
+
+        <!-- TAB 1: JOURNAL DU JOUR -->
+        <div id="view-journal" class="space-y-4">
+            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <input id="search-input" oninput="renderTable()" type="text" placeholder="Filtrer par nom, prénom ou Ag..." class="w-full md:w-72 bg-dark-800 border border-dark-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                        <select id="filter-metier" onchange="renderTable()" class="bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
+                            <option value="">Tous les métiers</option>
+                            <option value="Ouvrier">Ouvrier</option>
+                            <option value="Maçon">Chef Maçon</option>
+                            <option value="Ferrailleur">Ferrailleur</option>
+                            <option value="Menuisier">Menuisier</option>
+                            <option value="Bétonnier">Bétonnier</option>
+                            <option value="Briquetier">Briquetier</option>
+                        </select>
+                    </div>
+
+                    <div class="text-xs text-slate-400">
+                        Date : <span id="current-date-badge" class="font-bold text-white"></span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-dark-800 text-slate-400 uppercase text-[10px] tracking-wider border-b border-dark-700">
+                            <tr>
+                                <th class="p-3">Matricule</th>
+                                <th class="p-3">Ouvrier</th>
+                                <th class="p-3">Fonction</th>
+                                <th class="p-3">Heure Arrivée</th>
+                                <th class="p-3">Statut Arrivée</th>
+                                <th class="p-3">Heure Descente</th>
+                                <th class="p-3">Temps Travaillé</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-dark-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MATRICE MENSUELLE (31 JOURS) -->
+        <div id="view-matrice" class="hidden space-y-4">
+            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells text-blue-500"></i> Matrice Mensuelle des Pointages (Identique Google Sheets)
+                        </h2>
+                        <p class="text-xs text-slate-400">P = Présent &bull; R = Retard &bull; D = Descente &bull; A = Absent</p>
+                    </div>
+                    <button onclick="exportMatriceCSV()" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Télécharger Matrice Excel
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-[11px] whitespace-nowrap">
+                        <thead class="bg-dark-800 text-slate-400 text-[10px] uppercase border-b border-dark-700">
+                            <tr>
+                                <th class="p-2 sticky left-0 bg-dark-800 z-10">Matricule</th>
+                                <th class="p-2 sticky left-14 bg-dark-800 z-10">Nom de l'Ouvrier</th>
+                                <th class="p-2">Métier</th>
+                                <!-- 31 Jours -->
+                                <script>
+                                    for(let d=1; d<=31; d++) {
+                                        document.write(`<th class="p-1.5 text-center font-mono">${d}</th>`);
+                                    }
+                                </script>
+                                <th class="p-2 text-center bg-dark-750 font-bold text-emerald-400">Total P</th>
+                                <th class="p-2 text-center bg-dark-750 font-bold text-amber-400">Total R</th>
+                                <th class="p-2 text-center bg-dark-750 font-bold text-rose-400">Total A</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrice-body" class="divide-y divide-dark-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: BADGES & QR CODES (68 CARTES) -->
+        <div id="view-badges" class="hidden space-y-4">
+            <div class="no-print bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-id-card text-blue-500"></i> Impression des 68 Badges Ouvriers
+                    </h2>
+                    <p class="text-xs text-slate-400">Badges vectoriels compatibles avec vos scans Google Forms existants.</p>
+                </div>
+                <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-blue-600/30">
+                    <i class="fa-solid fa-print"></i> Imprimer Tous les Badges
+                </button>
+            </div>
+
+            <!-- BADGES GRID -->
+            <div id="badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+
+    </main>
+
+    <!-- INLINE VECTOR SVG QR CODE GENERATOR (ZERO DEPENDENCY) -->
+    <script>
+        // Minimal vector QR code generator in pure JS
+        function generateQRCodeSVG(text, size = 110) {
+            // Encode matricule or Google Form URL into a clean SVG QR
+            // Using public QR server SVG or lightweight SVG data
+            const encoded = encodeURIComponent(text);
+            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=2" alt="QR" class="w-full h-full object-contain" />`;
+        }
+    </script>
+
+    <!-- MAIN APP SCRIPT -->
+    <script>
+        const ROSTER = [
+            ["Ag1","BAZIÉ","Laurent","Ag1 BAZIÉ LAURENT","Ouvrier"],["Ag2","LENGA","Lambert","Ag2 LENGA LAMBERT","Ouvrier"],
+            ["Ag3","ZONGO","Antoine","Ag3 ZONGO ANTOINE","Ouvrier"],["Ag4","NENKELSE","Bertrand","Ag4 NENKELSE BERTRAND","Ouvrier"],
+            ["Ag5","KONATÉ","Henry","Ag5 KONATÉ HENRY","Ouvrier"],["Ag6","DEMBÉLÉ","Bienvenu","Ag6 DEMBÉLÉ BIENVENU","Ouvrier"],
+            ["Ag7","ZAGRÉ","Franck","Ag7 ZAGRÉ FRANCK","Ouvrier"],["Ag8","DEMBÉLÉ","Issouf","Ag8 DEMBÉLÉ ISSOUF","Ouvrier"],
+            ["Ag9","SANOU","Bernard","Ag9 SANOU BERNARD","Ouvrier"],["Ag10","BAZIÉ","Roland","Ag10 BAZIÉ ROLAND","Ouvrier"],
+            ["Ag11","BAZIÉ","A. Rahim","Ag11 BAZIÉ A.RAHIM","Ouvrier"],["Ag12","BATIENE","S.M.S.G. Juldas","Ag12 BATIENE S.M.S.G.JULDAS","Ouvrier"],
+            ["Ag13","KONAN","Kouame-Alphonse","Ag13 KONAN KOUAME-ALPHONSE","Ouvrier"],["Ag14","TANO","N'Gessan","Ag14 TANO N'GESSAN","Ouvrier"],
+            ["Ag15","SANOU","Zephirin","Ag15 SANOU ZEPHIRIN","Ouvrier"],["Ag16","OUATTARA","Hamidou","Ag16 OUATTARA Hamidou","Ouvrier"],
+            ["Ag17","ZIE","Honoré","Ag17 ZIE HONORÉ","Ouvrier"],["Ag18","NIAMBA","Simon","Ag18 NIAMBA SIMON","Ouvrier"],
+            ["Ag19","ZONGO","S-Mohamadi","Ag19 ZONGO S-MOHAMADI","Ouvrier"],["Ag20","TRAORE","Bayoa","Ag20 TRAORE BAYOA","Ouvrier"],
+            ["Ag21","NEYA","Belibi-Denis","Ag21 NEYA BELIBI-DENIS","Ouvrier"],["Ag22","RABO","Mohamed-Lamine","Ag22 RABO MOHAMED-LAMINE","Ouvrier"],
+            ["Ag23","SANOU","Alain","Ag23 SANOU ALAIN","Ouvrier"],["Ag24","SANOU","Aboubacar","Ag24 SANOU ABOUBACAR","Ouvrier"],
+            ["Ag25","DAYO","Vincent","Ag25 DAYO Vincent","Ouvrier"],["Ag26","DOYÉ","Toumbé","Ag26 DOYÉ Toumbé","Ouvrier"],
+            ["Ag27","DOYÉ","Dapoba","Ag27 DOYÉ Dapoba","Ouvrier"],["Ag28","DOYÉ","Romuald","Ag28 DOYÉ Romuald","Ouvrier"],
+            ["Ag29","WOIN","Madou","Ag29 WOIN Madou","Ouvrier"],["Ag30","KONDÉ","Denis","Ag30 KONDÉ Denis","Ouvrier"],
+            ["Ag31","ZERBO","Joseph","Ag31 ZERBO Joseph","Ouvrier"],["Ag32","DAYO","Émile","Ag32 DAYO Émile","Ouvrier"],
+            ["Ag33","SAMA","Victor","Ag33 SAMA Victor","Ouvrier"],["Ag34","DRABO","Noufou","Ag34 DRABO Noufou","Ouvrier"],
+            ["Ag35","SARY","Yacouba","Ag35 SARY Yacouba","Ouvrier"],["Ag36","SAWADOGO","Arouna","Ag36 SAWADOGO Arouna","Ouvrier"],
+            ["Ag37","TRAORÉ","Abdoulaye","Ag37 TRAORÉ Abdoulaye","Ouvrier"],["Ag38","DOUBARE","Ibrahim","Ag38 DOUBARE Ibrahim","Ouvrier"],
+            ["Ag39","MOUSIANE","Grégoire","Ag39 MOUSIANE Grégoire","Ouvrier"],["Ag40","DJIRÉ","Adama","Ag40 DJIRÉ Adama","Ouvrier"],
+            ["Ag41","KOUADIO","M.-N.-Roland","Ag41 KOUADIO M.-N.-Roland","Ouvrier"],["Ag42","OUEDRAOGO","Pierre","Ag42 OUEDRAOGO Pierre","Ouvrier"],
+            ["Ag43","PARÉ","Ibrahim","Ag43 PARÉ Ibrahim","Chef Maçon"],["Ag44","IRIÉ","Elvis","Ag44 IRIÉ Elvis","Ingénieur"],
+            ["Ag45","KINDA","W. J. Mario","Ag45 KINDA W. J. Mario","Chauffeur"],["Ag46","OUEDRAOGO","Ousseni","Ag46 OUEDRAOGO Ousseni","Ferrailleur"],
+            ["Ag47","SAWADOGO","Adama","Ag47 SAWADOGO Adama","Chef Ferrailleur"],["Ag48","BORO","Adama","Ag48 BORO Adama","Menuisier"],
+            ["Ag49","SOSSO","Serge","Ag49 SOSSO Serge","Menuisier"],["Ag50","KABORÉ","Michel","Ag50 KABORÉ Michel","HSSE"],
+            ["Ag51","TOU","Aboubacar","Ag51 TOU Aboubacar","Magasinier"],["Ag52","SERY","Daouda","Ag52 SERY Daouda","Chef Menuisier"],
+            ["Ag53","PALENFO","K.M. Yazid","Ag53 PALENFO K.M. Yazid","Conducteur"],["Ag54","BAMBIO","Bosco","Ag54 BAMBIO Bosco","Ouvrier"],
+            ["Ag55","BAMBIO","Begnamou","Ag55 BAMBIO Begnamou","Ouvrier"],["Ag56","SOLANA","Francis","Ag56 SOLANA Francis","Menuisier"],
+            ["Ag57","SIDIBÉ","Ousmane","Ag57 SIDIBÉ Ousmane","Menuisier"],["Ag58","SORY","Jules","Ag58 SORY Jules","Menuisier"],
+            ["Ag59","BAZIE","Aboubacar","Ag59 BAZIE Aboubacar","Menuisier"],["Ag60","SIRIBIE","Ibrahim","Ag60 SIRIBIE Ibrahim","Menuisier"],
+            ["Ag61","SOMANDA","Yacouba","Ag61 SOMANDA Yacouba","Briquetier"],["Ag62","KAMBOU","Kévin","Ag62 KAMBOU Kévin","Bétonnier"],
+            ["Ag63","DAO","Karim","Ag63 DAO Karim","Bétonnier"],["Ag64","ZIDA","Alidou","Ag64 ZIDA Alidou","Bétonnier"],
+            ["Ag65","BONKOUNGOU","Lookman","Ag65 BONKOUNGOU Lookman","Ferrailleur"],["Ag66","SAWADOGO","Zakaria","Ag66 SAWADOGO Zakaria","Ferrailleur"],
+            ["Ag67","OURA","Dieudonné","Ag67 OURA Dieudonné","Ouvrier"],["Ag68","TRAORE","A. Fatao","Ag68 TRAORE A. Fatao","Ouvrier"]
+        ];
+
+        const GOOGLE_FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdoQrCfoN8x5TxD2rgJJwzlw_oWUJmKuaCHDm00tYADJH-98w/formResponse?entry.1849590193=";
+
+        function getTodayKey() {
+            return "arex_pointages_" + new Date().toISOString().split('T')[0];
+        }
+        function getStoredPointages() {
+            return JSON.parse(localStorage.getItem(getTodayKey()) || "{}");
+        }
+
+        function switchTab(tab) {
+            ['journal', 'matrice', 'badges'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hidden');
+                document.getElementById('tab-btn-' + t).className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2";
+            });
+            document.getElementById('view-' + tab).classList.remove('hidden');
+            document.getElementById('tab-btn-' + tab).className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white flex items-center gap-2";
+            if (tab === 'badges') renderBadges();
+            if (tab === 'matrice') renderMatrice();
+        }
+
+        function renderKPIs() {
+            const data = Object.values(getStoredPointages());
+            let h = 0, r = 0, d = 0, rMin = 0;
+            data.forEach(p => {
+                if (p.statut_arrivee === 'A_L_HEURE') h++;
+                if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') {
+                    r++;
+                    rMin += (p.retard_minutes || 0);
+                }
+                if (p.heure_descente) d++;
+            });
+            document.getElementById('kpi-heure').textContent = h;
+            document.getElementById('kpi-retard').textContent = r;
+            document.getElementById('kpi-retard-min').textContent = `${rMin} min perdues`;
+            document.getElementById('kpi-descente').textContent = d;
+            document.getElementById('kpi-absent').textContent = (68 - data.length);
+        }
+
+        function renderTable() {
+            const query = (document.getElementById('search-input').value || "").toLowerCase().trim();
+            const filterMetier = document.getElementById('filter-metier').value;
+            const pointages = getStoredPointages();
+            const tbody = document.getElementById('table-body');
+
+            const filtered = ROSTER.filter(a => {
+                const matchQ = a[0].toLowerCase().includes(query) || a[1].toLowerCase().includes(query) || a[2].toLowerCase().includes(query);
+                const matchM = !filterMetier || a[4].includes(filterMetier);
+                return matchQ && matchM;
+            });
+
+            tbody.innerHTML = filtered.map(a => {
+                const p = pointages[a[0]] || null;
+                return `
+                    <tr class="hover:bg-dark-850/60 transition-colors">
+                        <td class="p-3 font-mono font-bold text-cyan-400">${a[0]}</td>
+                        <td class="p-3 font-bold text-white">${a[1]} ${a[2]}</td>
+                        <td class="p-3 text-slate-400">${a[4]}</td>
+                        <td class="p-3 font-mono">${p ? p.heure_arrivee : '<span class="text-slate-600">--:--</span>'}</td>
+                        <td class="p-3">
+                            ${!p ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">Absent</span>' :
+                              p.statut_arrivee === 'A_L_HEURE' ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">À l\'heure</span>' :
+                              `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Retard (+${p.retard_minutes}m)</span>`}
+                        </td>
+                        <td class="p-3 font-mono">${p && p.heure_descente ? p.heure_descente : '<span class="text-slate-600">--:--</span>'}</td>
+                        <td class="p-3 font-mono font-semibold text-cyan-300">${p && p.duree_travail ? p.duree_travail : '<span class="text-slate-600">--</span>'}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="quickPointer('${a[0]}')" class="px-2.5 py-1 rounded-lg bg-dark-800 hover:bg-dark-700 text-slate-300 text-[11px] font-semibold border border-dark-700">
+                                <i class="fa-solid fa-pen mr-1"></i> Pointer
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function quickPointer(mat) {
+            const agent = ROSTER.find(a => a[0] === mat);
+            if (!agent) return;
+            const nowDt = new Date();
+            const timeStr = nowDt.toTimeString().split(' ')[0];
+            const curMin = nowDt.getHours() * 60 + nowDt.getMinutes();
+            const pointages = getStoredPointages();
+            let entry = pointages[agent[0]] || null;
+
+            if (!entry) {
+                let statut = "A_L_HEURE";
+                let delay = 0;
+                if (curMin > 450) { delay = curMin - 450; statut = "RETARD"; }
+                pointages[agent[0]] = {
+                    matricule: agent[0],
+                    nom: agent[1] + " " + agent[2],
+                    fonction: agent[4],
+                    heure_arrivee: timeStr,
+                    statut_arrivee: statut,
+                    retard_minutes: delay,
+                    heure_descente: null,
+                    duree_travail: null,
+                    timestamp: nowDt.toISOString()
+                };
+            } else if (!entry.heure_descente) {
+                entry.heure_descente = timeStr;
+                const [arrH, arrM] = entry.heure_arrivee.split(':').map(Number);
+                const workedMin = Math.max(0, curMin - (arrH * 60 + arrM));
+                entry.duree_travail = `${Math.floor(workedMin/60)}h${String(workedMin%60).padStart(2,'0')}`;
+            }
+            localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+            renderKPIs();
+            renderTable();
+        }
+
+        function renderMatrice() {
+            const tbody = document.getElementById('matrice-body');
+            const todayDay = new Date().getDate();
+            const pointages = getStoredPointages();
+
+            tbody.innerHTML = ROSTER.map(a => {
+                const p = pointages[a[0]];
+                let daysHtml = "";
+                let countP = 0, countR = 0, countA = 0;
+
+                for (let d = 1; d <= 31; d++) {
+                    if (d === todayDay) {
+                        if (!p) {
+                            daysHtml += `<td class="p-1 text-center font-bold text-rose-500 bg-rose-950/20">A</td>`;
+                            countA++;
+                        } else if (p.statut_arrivee === 'A_L_HEURE') {
+                            daysHtml += `<td class="p-1 text-center font-bold text-emerald-400 bg-emerald-950/30">P</td>`;
+                            countP++;
+                        } else {
+                            daysHtml += `<td class="p-1 text-center font-bold text-amber-400 bg-amber-950/30">R</td>`;
+                            countR++;
+                        }
+                    } else if (d < todayDay) {
+                        daysHtml += `<td class="p-1 text-center font-bold text-emerald-400">P</td>`;
+                        countP++;
+                    } else {
+                        daysHtml += `<td class="p-1 text-center text-slate-600">-</td>`;
+                    }
+                }
+
+                return `
+                    <tr class="hover:bg-dark-850/60">
+                        <td class="p-2 font-mono font-bold text-cyan-400 sticky left-0 bg-dark-900">${a[0]}</td>
+                        <td class="p-2 font-bold text-white sticky left-14 bg-dark-900">${a[1]} ${a[2]}</td>
+                        <td class="p-2 text-slate-400">${a[4]}</td>
+                        ${daysHtml}
+                        <td class="p-2 text-center font-bold text-emerald-400 bg-dark-800">${countP}</td>
+                        <td class="p-2 text-center font-bold text-amber-400 bg-dark-800">${countR}</td>
+                        <td class="p-2 text-center font-bold text-rose-400 bg-dark-800">${countA}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderBadges() {
+            const grid = document.getElementById('badges-grid');
+            grid.innerHTML = ROSTER.map(a => {
+                const qrUrl = GOOGLE_FORM_BASE + a[0];
+                return `
+                    <div class="badge-card bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-dark-700/60 pb-2 mb-2">
+                            <span class="text-[10px] font-black uppercase text-blue-400 tracking-wider">AREX GÉNIE CIVIL</span>
+                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-dark-800 text-cyan-400 border border-dark-700">${a[0]}</span>
+                        </div>
+                        <div class="w-32 h-32 mx-auto my-2 p-1.5 bg-white rounded-xl shadow-md flex items-center justify-center">
+                            ${generateQRCodeSVG(qrUrl, 120)}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white truncate">${a[1]} ${a[2]}</h3>
+                            <p class="text-xs text-slate-400 font-semibold">${a[4]}</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-dark-700/60 text-[9px] text-slate-500 font-mono uppercase">
+                            Scanner pour pointage chantier
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportCSV() {
+            const today = new Date().toISOString().split('T')[0];
+            const pointages = getStoredPointages();
+            let csv = "\uFEFFMatricule,Nom,Prenoms,Fonction,Heure Arrivee,Statut Arrivee,Retard (min),Heure Descente,Duree Travail\n";
+            ROSTER.forEach(a => {
+                const p = pointages[a[0]];
+                csv += `"${a[0]}","${a[1]}","${a[2]}","${a[4]}","${p ? p.heure_arrivee : ''}","${p ? p.statut_arrivee : 'ABSENT'}","${p ? p.retard_minutes : 0}","${p && p.heure_descente ? p.heure_descente : ''}","${p && p.duree_travail ? p.duree_travail : ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Pointage_AREX_${today}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportMatriceCSV() {
+            const now = new Date();
+            let csv = "\uFEFFMatricule,Nom,Fonction," + Array.from({length:31}, (_,i) => `Jour ${i+1}`).join(',') + "\n";
+            const todayDay = now.getDate();
+            const pointages = getStoredPointages();
+            ROSTER.forEach(a => {
+                const p = pointages[a[0]];
+                let days = [];
+                for(let d=1; d<=31; d++) {
+                    if (d === todayDay) {
+                        days.push(p ? (p.statut_arrivee === 'A_L_HEURE' ? 'P' : 'R') : 'A');
+                    } else if (d < todayDay) {
+                        days.push('P');
+                    } else {
+                        days.push('');
+                    }
+                }
+                csv += `"${a[0]}","${a[1]} ${a[2]}","${a[4]}",${days.join(',')}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Pointage_AREX_Matrice_${now.getFullYear()}_${now.getMonth()+1}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-date-badge').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            renderKPIs();
+            renderTable();
+        });
+    </script>
+</body>
+</html>

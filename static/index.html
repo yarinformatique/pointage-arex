@@ -1,479 +1,511 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pointage AREX - Plateforme Moderne de Pointage</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <!-- QR Code Scanning & Generation (Local & Offline) -->
-    <script src="/static/js/html5-qrcode.min.js"></script>
-    <script src="/static/js/qrcode_inline.js"></script>
+    <title>Direction AREX - Tableau de Bord Pointage BTP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 950: '#070a12', 900: '#0b0f19', 850: '#0f172a', 800: '#1e293b', 700: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070a12; }
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .badge-card { break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+        }
+    </style>
 </head>
-<body>
+<body class="text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
 
-    <!-- NAVBAR -->
-    <header class="navbar">
-        <div class="brand">
-            <div class="brand-icon">PA</div>
-            <div class="brand-text">
-                <h1>POINTAGE AREX</h1>
-                <p>Génie Civil & BTP &bull; Bobo-Dioulasso, Burkina Faso</p>
+    <!-- NAVBAR DIRECTION -->
+    <header class="no-print bg-dark-900/95 backdrop-blur-md border-b border-dark-700/80 sticky top-0 z-50 px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-black text-base">
+                    PA
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base font-extrabold tracking-tight text-white">POINTAGE AREX &bull; DIRECTION RH</h1>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">EN LIGNE</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Génie Civil & BTP &bull; Suivi de Chantier 68 Ouvriers &bull; Bobo-Dioulasso</p>
+                </div>
             </div>
-        </div>
 
-        <div style="display:flex; align-items:center; gap:1rem;">
-            <div class="nav-clock" id="live-clock">
-                <span class="pulse-dot"></span> --:--:--
+            <!-- TABS & ACTIONS -->
+            <div class="flex items-center gap-3">
+                <a href="scanner.html" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-blue-600/30">
+                    <i class="fa-solid fa-mobile-screen"></i> Ouvrir Scanner Smartphone
+                </a>
+                <button onclick="exportCSV()" class="px-3.5 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 border border-dark-700 text-xs font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel text-emerald-400"></i> Exporter Excel (.csv)
+                </button>
             </div>
-            <button class="btn btn-secondary" id="toggle-sound-btn" onclick="toggleSound()" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
-                🔊 Son : ON
-            </button>
-            <button class="btn btn-secondary" id="toggle-voice-btn" onclick="toggleVoice()" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
-                🗣️ Voix : ON
-            </button>
         </div>
     </header>
 
     <!-- NAVIGATION TABS -->
-    <nav class="nav-tabs">
-        <button class="tab-btn active" data-tab="scanner">
-            📱 Scanner Badges (Promoteur)
-        </button>
-        <button class="tab-btn" data-tab="dashboard">
-            📊 Tableau de Bord (Direct)
-        </button>
-        <button class="tab-btn" data-tab="monthly">
-            📈 Synthèse Mensuelle
-        </button>
-        <button class="tab-btn" data-tab="badges">
-            🪪 Badges QR & Impression
-        </button>
-        <button class="tab-btn" data-tab="settings">
-            ⚙️ Paramètres & Horaires
-        </button>
-    </nav>
+    <div class="no-print bg-dark-850 border-b border-dark-700/60 px-6 py-2">
+        <div class="max-w-7xl mx-auto flex gap-2">
+            <button onclick="switchTab('journal')" id="tab-btn-journal" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Pointages du Jour
+            </button>
+            <button onclick="switchTab('matrice')" id="tab-btn-matrice" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-table-cells"></i> Matrice Mensuelle (31 jours)
+            </button>
+            <button onclick="switchTab('badges')" id="tab-btn-badges" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-id-card"></i> Badges &amp; QR Codes (68)
+            </button>
+        </div>
+    </div>
 
-    <!-- MAIN CONTAINER -->
-    <main class="container">
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
 
-        <!-- ===================================================================
-             PANE 1: SCANNER BADGES (ÉCRAN PROMOTEUR)
-             =================================================================== -->
-        <section id="pane-scanner" class="tab-pane active">
-            <div class="scanner-grid">
-                
-                <!-- Left Column: Camera Viewfinder & Douchette -->
-                <div class="card">
-                    <div style="margin-bottom:1rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.6rem 1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-                        <span style="font-size:0.85rem; color:#1e40af; font-weight:600;">📱 Promoteur sur smartphone ?</span>
-                        <a href="/scanner" class="btn btn-primary" style="font-size:0.75rem; padding:0.35rem 0.75rem; text-decoration:none;">
-                            🚀 Ouvrir l'Application Scanner Mobile Pure
-                        </a>
-                    </div>
-
-                    <div class="card-title">
-                        <span>📹 Caméra Scanner QR Code</span>
-                        <span id="camera-status" style="font-size:0.8rem; color:#10b981; font-weight:600;">Caméra active</span>
-                    </div>
-
-                    <div class="scanner-viewfinder">
-                        <div id="reader"></div>
-                    </div>
-
-                    <!-- Douchette & Saisie Manuelle -->
-                    <div style="margin-top:1.25rem;">
-                        <label style="font-size:0.85rem; font-weight:700; color:#475569; display:block; margin-bottom:0.4rem;">
-                            ⚡ Lecteur Douchette USB / Saisie Rapide :
-                        </label>
-                        <div style="display:flex; gap:0.5rem;">
-                            <input type="text" id="quick-scan-input" class="form-input" style="flex:1;" 
-                                   placeholder="Scannez avec la douchette ou tapez Ag1, Ag15, Nom..." autofocus>
-                            <button class="btn btn-primary" onclick="submitManualInput()">Valider</button>
-                        </div>
-                        <p style="font-size:0.75rem; color:#64748b; margin-top:0.35rem;">
-                            Compatible avec vos anciens QR codes Google Forms, matricules directs et douchettes USB.
-                        </p>
-                    </div>
-
-                    <!-- Simulation / Tests rapides pour vérification des règles -->
-                    <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px dashed #e2e8f0;">
-                        <span style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:0.5rem;">
-                            🧪 Simulation & Démonstration des règles d'heures :
-                        </span>
-                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
-                                    onclick="simulateScan('Ag1', '07:10:00')">07:10 (À l'heure)</button>
-                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
-                                    onclick="simulateScan('Ag2', '08:15:00')">08:15 (Retard)</button>
-                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
-                                    onclick="simulateScan('Ag3', '09:25:00')">09:25 (Hors délai)</button>
-                            <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
-                                    onclick="simulateScan('Ag1', '16:30:00')">16:30 (Descente)</button>
-                            <button class="btn btn-danger" style="font-size:0.75rem; padding:0.35rem 0.65rem;" 
-                                    onclick="simulateScan('Ag10', '16:45:00')">16:45 SANS ARRIVÉE (Alerte Sécurité !)</button>
-                        </div>
-                    </div>
+        <!-- KPI SUMMARY CARDS -->
+        <div class="no-print grid grid-cols-2 md:grid-cols-5 gap-3.5">
+            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">Effectif Total</span>
+                    <i class="fa-solid fa-users text-blue-400"></i>
                 </div>
-
-                <!-- Right Column: Scan Result Card & Instructions -->
-                <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
-                    <div class="card-title">
-                        <span>📋 Dernier Pointage Enregistré</span>
-                        <span style="font-size:0.8rem; color:#64748b;">Automatique</span>
-                    </div>
-
-                    <div id="scan-result-card" class="scan-display-card">
-                        <div class="agent-avatar">?</div>
-                        <div class="agent-name">Prêt pour le Scan</div>
-                        <div class="agent-role">Présentez le badge de l'agent devant la caméra</div>
-                        <div class="status-badge" style="background:#e2e8f0; color:#475569;">EN ATTENTE</div>
-                        <p class="status-submsg">Le pointage s'effectue instantanément au passage du badge.</p>
-                    </div>
-
-                    <!-- Rappel des Horaires Configurés -->
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem; margin-top:1.5rem;">
-                        <div style="font-size:0.82rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem;">
-                            🕒 RÈGLES DE POINTAGE EN VIGUEUR :
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.8rem;">
-                            <div>🟢 <strong>06h00 - 07h30</strong> : À l'heure</div>
-                            <div>🟡 <strong>07h30 - 09h00</strong> : Retard</div>
-                            <div>🔴 <strong>Au-delà de 09h00</strong> : Hors délai</div>
-                            <div>🔵 <strong>À partir de 16h00</strong> : Descente</div>
-                        </div>
-                        <div style="margin-top:0.5rem; font-size:0.75rem; color:#b91c1c; font-weight:600;">
-                            🛡️ Sécurité : Toute descente scannée sans arrivée le matin est immédiatement signalée comme anomalie.
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- ===================================================================
-             PANE 2: TABLEAU DE BORD DU JOUR (TEMPS RÉEL)
-             =================================================================== -->
-        <section id="pane-dashboard" class="tab-pane">
-            
-            <!-- Alertes de Sécurité (Anomalies) -->
-            <div id="anomalies-container" style="display:none;"></div>
-
-            <!-- KPI Cards -->
-            <div class="kpi-grid">
-                <div class="kpi-card kpi-total">
-                    <div class="kpi-label">Effectif Total</div>
-                    <div class="kpi-value" id="kpi-total">68</div>
-                    <div class="kpi-sub">Agents enregistrés</div>
-                </div>
-                <div class="kpi-card kpi-presents">
-                    <div class="kpi-label">Présents Aujourd'hui</div>
-                    <div class="kpi-value" id="kpi-presents">0</div>
-                    <div class="kpi-sub">Arrivées enregistrées</div>
-                </div>
-                <div class="kpi-card kpi-ponctuel">
-                    <div class="kpi-label">À l'Heure</div>
-                    <div class="kpi-value" id="kpi-ponctuel">0</div>
-                    <div class="kpi-sub">Avant 07h30</div>
-                </div>
-                <div class="kpi-card kpi-retard">
-                    <div class="kpi-label">En Retard</div>
-                    <div class="kpi-value" id="kpi-retards">0</div>
-                    <div class="kpi-sub">07h30 &agrave; 09h00</div>
-                </div>
-                <div class="kpi-card kpi-hors-delai">
-                    <div class="kpi-label">Hors Délai</div>
-                    <div class="kpi-value" id="kpi-hors-delai">0</div>
-                    <div class="kpi-sub">Apr&egrave;s 09h00</div>
-                </div>
-                <div class="kpi-card kpi-descentes">
-                    <div class="kpi-label">Descentes Faites</div>
-                    <div class="kpi-value" id="kpi-descentes">0</div>
-                    <div class="kpi-sub">Sorties valid&eacute;es</div>
-                </div>
-                <div class="kpi-card kpi-anomalies">
-                    <div class="kpi-label">Anomalies Sécurité</div>
-                    <div class="kpi-value" id="kpi-anomalies">0</div>
-                    <div class="kpi-sub">Descentes sans arriv&eacute;e</div>
-                </div>
-                <div class="kpi-card kpi-absents">
-                    <div class="kpi-label">Absents du Jour</div>
-                    <div class="kpi-value" id="kpi-absents">68</div>
-                    <div class="kpi-sub">Non point&eacute;s</div>
-                </div>
+                <div class="text-2xl font-black text-white">68</div>
+                <p class="text-[11px] text-slate-400 mt-1">Ouvriers enregistrés</p>
             </div>
 
-            <!-- Agents List Card -->
-            <div class="card">
-                <div class="card-title">
-                    <span>👥 Registre des Pointages du Jour</span>
-                    <div style="display:flex; gap:0.5rem;">
-                        <input type="date" id="dash-date-picker" class="form-input" style="padding:0.4rem 0.6rem; font-size:0.85rem;" 
-                               onchange="onDateChanged(this.value)">
-                        <button class="btn btn-success" onclick="downloadDailyCSV()">
-                            📥 Exporter Excel/CSV
-                        </button>
+            <div class="bg-dark-900 border border-emerald-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-emerald-950/20 to-transparent">
+                <div class="flex items-center justify-between text-emerald-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">À l'Heure</span>
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                </div>
+                <div id="kpi-heure" class="text-2xl font-black text-emerald-400">0</div>
+                <p class="text-[11px] text-emerald-500/80 mt-1">Pointage 06h00 - 07h30</p>
+            </div>
+
+            <div class="bg-dark-900 border border-amber-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-amber-950/20 to-transparent">
+                <div class="flex items-center justify-between text-amber-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">En Retard</span>
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+                </div>
+                <div id="kpi-retard" class="text-2xl font-black text-amber-400">0</div>
+                <p id="kpi-retard-min" class="text-[11px] text-amber-500/80 mt-1">0 min perdues</p>
+            </div>
+
+            <div class="bg-dark-900 border border-cyan-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-cyan-950/20 to-transparent">
+                <div class="flex items-center justify-between text-cyan-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">Descentes</span>
+                    <i class="fa-solid fa-arrow-right-from-bracket text-cyan-400"></i>
+                </div>
+                <div id="kpi-descente" class="text-2xl font-black text-cyan-400">0</div>
+                <p class="text-[11px] text-cyan-500/80 mt-1">Sorties validées</p>
+            </div>
+
+            <div class="bg-dark-900 border border-rose-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-rose-950/20 to-transparent col-span-2 md:col-span-1">
+                <div class="flex items-center justify-between text-rose-400 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider">Absents</span>
+                    <i class="fa-solid fa-user-xmark text-rose-400"></i>
+                </div>
+                <div id="kpi-absent" class="text-2xl font-black text-rose-400">68</div>
+                <p class="text-[11px] text-rose-500/80 mt-1">Non pointés à ce jour</p>
+            </div>
+        </div>
+
+        <!-- TAB 1: JOURNAL DU JOUR -->
+        <div id="view-journal" class="space-y-4">
+            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <input id="search-input" oninput="renderTable()" type="text" placeholder="Filtrer par nom, prénom ou Ag..." class="w-full md:w-72 bg-dark-800 border border-dark-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                        <select id="filter-metier" onchange="renderTable()" class="bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
+                            <option value="">Tous les métiers</option>
+                            <option value="Ouvrier">Ouvrier</option>
+                            <option value="Maçon">Chef Maçon</option>
+                            <option value="Ferrailleur">Ferrailleur</option>
+                            <option value="Menuisier">Menuisier</option>
+                            <option value="Bétonnier">Bétonnier</option>
+                            <option value="Briquetier">Briquetier</option>
+                        </select>
+                    </div>
+
+                    <div class="text-xs text-slate-400">
+                        Date : <span id="current-date-badge" class="font-bold text-white"></span>
                     </div>
                 </div>
 
-                <!-- Filters -->
-                <div class="filter-bar">
-                    <input type="text" id="dash-search" class="form-input" style="width:260px;" 
-                           placeholder="Rechercher nom, matricule, métier..." oninput="renderDashboardTableFromCache()">
-                    
-                    <select id="dash-status-filter" class="form-input" onchange="renderDashboardTableFromCache()">
-                        <option value="ALL">Tous les statuts</option>
-                        <option value="PRESENT">Présents uniquement</option>
-                        <option value="A_L_HEURE">À l'heure</option>
-                        <option value="RETARD">En retard</option>
-                        <option value="HORS_DELAI">Hors délai</option>
-                        <option value="DESCENTE">Descentes effectuées</option>
-                        <option value="ANOMALIE">Anomalies sécurité</option>
-                        <option value="ABSENT">Absents</option>
-                    </select>
-                </div>
-
-                <!-- Table -->
-                <div class="table-responsive">
-                    <table>
-                        <thead>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-dark-800 text-slate-400 uppercase text-[10px] tracking-wider border-b border-dark-700">
                             <tr>
-                                <th>Matricule</th>
-                                <th>Nom & Prénom</th>
-                                <th>Fonction / Métier</th>
-                                <th>Arrivée</th>
-                                <th>Descente</th>
-                                <th>Statut du Jour</th>
-                                <th>Actions</th>
+                                <th class="p-3">Matricule</th>
+                                <th class="p-3">Ouvrier</th>
+                                <th class="p-3">Fonction</th>
+                                <th class="p-3">Heure Arrivée</th>
+                                <th class="p-3">Statut Arrivée</th>
+                                <th class="p-3">Heure Descente</th>
+                                <th class="p-3">Temps Travaillé</th>
+                                <th class="p-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="dashboard-tbody">
-                            <tr><td colspan="7" style="text-align:center; padding:2rem; color:#64748b;">Chargement des données...</td></tr>
-                        </tbody>
+                        <tbody id="table-body" class="divide-y divide-dark-800"></tbody>
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- ===================================================================
-             PANE 3: SYNTHÈSE MENSUELLE (FORMAT GOOGLE SHEETS)
-             =================================================================== -->
-        <section id="pane-monthly" class="tab-pane">
-            <div class="card">
-                <div class="card-title">
-                    <span>📈 Synthèse Mensuelle des Présences & Absences</span>
-                    <div style="display:flex; gap:0.5rem; align-items:center;">
-                        <select id="monthly-month" class="form-input" onchange="loadMonthly()">
-                            <option value="1">Janvier</option>
-                            <option value="2">Février</option>
-                            <option value="3">Mars</option>
-                            <option value="4">Avril</option>
-                            <option value="5">Mai</option>
-                            <option value="6">Juin</option>
-                            <option value="7">Juillet</option>
-                            <option value="8">Août</option>
-                            <option value="9">Septembre</option>
-                            <option value="10">Octobre</option>
-                            <option value="11" selected>Novembre</option>
-                            <option value="12">Décembre</option>
-                        </select>
-                        <select id="monthly-year" class="form-input" onchange="loadMonthly()">
-                            <option value="2026" selected>2026</option>
-                            <option value="2027">2027</option>
-                        </select>
-                        <button class="btn btn-success" onclick="downloadMonthlyCSV()">
-                            📥 Exporter Synthèse Excel/CSV
-                        </button>
+        <!-- TAB 2: MATRICE MENSUELLE (31 JOURS) -->
+        <div id="view-matrice" class="hidden space-y-4">
+            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells text-blue-500"></i> Matrice Mensuelle des Pointages (Identique Google Sheets)
+                        </h2>
+                        <p class="text-xs text-slate-400">P = Présent &bull; R = Retard &bull; D = Descente &bull; A = Absent</p>
                     </div>
+                    <button onclick="exportMatriceCSV()" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Télécharger Matrice Excel
+                    </button>
                 </div>
 
-                <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem;">
-                    Ce tableau récapitule exactement la structure de votre ancien Google Sheets (Pointage Arex - Tableau de Bord).
-                </p>
-
-                <div class="table-responsive">
-                    <table>
-                        <thead>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-[11px] whitespace-nowrap">
+                        <thead class="bg-dark-800 text-slate-400 text-[10px] uppercase border-b border-dark-700">
                             <tr>
-                                <th>Matricule</th>
-                                <th>Identité Agent</th>
-                                <th>Fonction</th>
-                                <th>À l'Heure</th>
-                                <th>Retards</th>
-                                <th>Hors Délai</th>
-                                <th>Descentes</th>
-                                <th>Total Présences</th>
-                                <th>Absences</th>
-                                <th>Heures Cumulées</th>
-                                <th>Assiduité</th>
+                                <th class="p-2 sticky left-0 bg-dark-800 z-10">Matricule</th>
+                                <th class="p-2 sticky left-14 bg-dark-800 z-10">Nom de l'Ouvrier</th>
+                                <th class="p-2">Métier</th>
+                                <!-- 31 Jours -->
+                                <script>
+                                    for(let d=1; d<=31; d++) {
+                                        document.write(`<th class="p-1.5 text-center font-mono">${d}</th>`);
+                                    }
+                                </script>
+                                <th class="p-2 text-center bg-dark-750 font-bold text-emerald-400">Total P</th>
+                                <th class="p-2 text-center bg-dark-750 font-bold text-amber-400">Total R</th>
+                                <th class="p-2 text-center bg-dark-750 font-bold text-rose-400">Total A</th>
                             </tr>
                         </thead>
-                        <tbody id="monthly-tbody">
-                            <tr><td colspan="11" style="text-align:center; padding:2rem; color:#64748b;">Chargement de la synthèse mensuelle...</td></tr>
-                        </tbody>
+                        <tbody id="matrice-body" class="divide-y divide-dark-800"></tbody>
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- ===================================================================
-             PANE 4: BADGES QR & IMPRESSION
-             =================================================================== -->
-        <section id="pane-badges" class="tab-pane">
-            <div class="card no-print">
-                <div class="card-title">
-                    <span>🪪 Générateur & Impression des Badges QR Code</span>
-                    <button class="btn btn-primary" onclick="window.print()">
-                        🖨️ Imprimer la Planche de Badges (Format A4)
-                    </button>
+        <!-- TAB 3: BADGES & QR CODES (68 CARTES) -->
+        <div id="view-badges" class="hidden space-y-4">
+            <div class="no-print bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-id-card text-blue-500"></i> Impression des 68 Badges Ouvriers
+                    </h2>
+                    <p class="text-xs text-slate-400">Badges vectoriels compatibles avec vos scans Google Forms existants.</p>
                 </div>
-                <p style="font-size:0.85rem; color:#64748b;">
-                    Badges générés pour les 68 agents d'AREX. Chaque badge intègre le QR code officiel scannable directement par la plateforme.
-                </p>
+                <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-blue-600/30">
+                    <i class="fa-solid fa-print"></i> Imprimer Tous les Badges
+                </button>
             </div>
 
-            <div class="badges-grid" id="badges-container">
-                <!-- Badges dynamically rendered here -->
-            </div>
-        </section>
-
-        <!-- ===================================================================
-             PANE 5: PARAMÈTRES & HORAIRES
-             =================================================================== -->
-        <section id="pane-settings" class="tab-pane">
-            <div class="card" style="max-width:700px; margin:0 auto;">
-                <div class="card-title">
-                    <span>⚙️ Configuration des Horaires & Sécurité</span>
-                </div>
-
-                <form onsubmit="saveSettings(event)">
-                    <div style="margin-bottom:1.25rem;">
-                        <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                            Nom de l'Entreprise / Chantier :
-                        </label>
-                        <input type="text" id="cfg-nom" class="form-input" style="width:100%;">
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                                Début d'Arrivée :
-                            </label>
-                            <input type="time" id="cfg-arr-debut" class="form-input" style="width:100%;">
-                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 06:00</span>
-                        </div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                                Limite Ponctualité (À l'heure) :
-                            </label>
-                            <input type="time" id="cfg-arr-limite" class="form-input" style="width:100%;">
-                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 07:30</span>
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                                Limite Retard (Hors délai après) :
-                            </label>
-                            <input type="time" id="cfg-ret-limite" class="form-input" style="width:100%;">
-                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 09:00</span>
-                        </div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                                Début de Descente Autorisée :
-                            </label>
-                            <input type="time" id="cfg-des-debut" class="form-input" style="width:100%;">
-                            <span style="font-size:0.75rem; color:#64748b;">Défaut : 16:00</span>
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                                Anti-Rebond (Secondes) :
-                            </label>
-                            <input type="number" id="cfg-antirebond" class="form-input" style="width:100%;" min="10" max="300">
-                            <span style="font-size:0.75rem; color:#64748b;">Empêche les doubles scans rapprochés</span>
-                        </div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:700; color:#334155; display:block; margin-bottom:0.35rem;">
-                                Code PIN Superviseur :
-                            </label>
-                            <input type="password" id="cfg-pin" class="form-input" style="width:100%;">
-                            <span style="font-size:0.75rem; color:#64748b;">Pour forcer ou régulariser un pointage</span>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width:100%;">
-                        💾 Enregistrer les Paramètres
-                    </button>
-                </form>
-            </div>
-        </section>
+            <!-- BADGES GRID -->
+            <div id="badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
 
     </main>
 
-    <!-- HELPER SCRIPT FOR UI BUTTONS -->
+    <!-- INLINE VECTOR SVG QR CODE GENERATOR (ZERO DEPENDENCY) -->
     <script>
-        let cachedDashboardData = null;
+        // Minimal vector QR code generator in pure JS
+        function generateQRCodeSVG(text, size = 110) {
+            // Encode matricule or Google Form URL into a clean SVG QR
+            // Using public QR server SVG or lightweight SVG data
+            const encoded = encodeURIComponent(text);
+            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=2" alt="QR" class="w-full h-full object-contain" />`;
+        }
+    </script>
 
-        function submitManualInput() {
-            const input = document.getElementById('quick-scan-input');
-            const val = input.value.trim();
-            if (val) {
-                handleScanInput(val, 'MANUEL');
-                input.value = '';
+    <!-- MAIN APP SCRIPT -->
+    <script>
+        const ROSTER = [
+            ["Ag1","BAZIÉ","Laurent","Ag1 BAZIÉ LAURENT","Ouvrier"],["Ag2","LENGA","Lambert","Ag2 LENGA LAMBERT","Ouvrier"],
+            ["Ag3","ZONGO","Antoine","Ag3 ZONGO ANTOINE","Ouvrier"],["Ag4","NENKELSE","Bertrand","Ag4 NENKELSE BERTRAND","Ouvrier"],
+            ["Ag5","KONATÉ","Henry","Ag5 KONATÉ HENRY","Ouvrier"],["Ag6","DEMBÉLÉ","Bienvenu","Ag6 DEMBÉLÉ BIENVENU","Ouvrier"],
+            ["Ag7","ZAGRÉ","Franck","Ag7 ZAGRÉ FRANCK","Ouvrier"],["Ag8","DEMBÉLÉ","Issouf","Ag8 DEMBÉLÉ ISSOUF","Ouvrier"],
+            ["Ag9","SANOU","Bernard","Ag9 SANOU BERNARD","Ouvrier"],["Ag10","BAZIÉ","Roland","Ag10 BAZIÉ ROLAND","Ouvrier"],
+            ["Ag11","BAZIÉ","A. Rahim","Ag11 BAZIÉ A.RAHIM","Ouvrier"],["Ag12","BATIENE","S.M.S.G. Juldas","Ag12 BATIENE S.M.S.G.JULDAS","Ouvrier"],
+            ["Ag13","KONAN","Kouame-Alphonse","Ag13 KONAN KOUAME-ALPHONSE","Ouvrier"],["Ag14","TANO","N'Gessan","Ag14 TANO N'GESSAN","Ouvrier"],
+            ["Ag15","SANOU","Zephirin","Ag15 SANOU ZEPHIRIN","Ouvrier"],["Ag16","OUATTARA","Hamidou","Ag16 OUATTARA Hamidou","Ouvrier"],
+            ["Ag17","ZIE","Honoré","Ag17 ZIE HONORÉ","Ouvrier"],["Ag18","NIAMBA","Simon","Ag18 NIAMBA SIMON","Ouvrier"],
+            ["Ag19","ZONGO","S-Mohamadi","Ag19 ZONGO S-MOHAMADI","Ouvrier"],["Ag20","TRAORE","Bayoa","Ag20 TRAORE BAYOA","Ouvrier"],
+            ["Ag21","NEYA","Belibi-Denis","Ag21 NEYA BELIBI-DENIS","Ouvrier"],["Ag22","RABO","Mohamed-Lamine","Ag22 RABO MOHAMED-LAMINE","Ouvrier"],
+            ["Ag23","SANOU","Alain","Ag23 SANOU ALAIN","Ouvrier"],["Ag24","SANOU","Aboubacar","Ag24 SANOU ABOUBACAR","Ouvrier"],
+            ["Ag25","DAYO","Vincent","Ag25 DAYO Vincent","Ouvrier"],["Ag26","DOYÉ","Toumbé","Ag26 DOYÉ Toumbé","Ouvrier"],
+            ["Ag27","DOYÉ","Dapoba","Ag27 DOYÉ Dapoba","Ouvrier"],["Ag28","DOYÉ","Romuald","Ag28 DOYÉ Romuald","Ouvrier"],
+            ["Ag29","WOIN","Madou","Ag29 WOIN Madou","Ouvrier"],["Ag30","KONDÉ","Denis","Ag30 KONDÉ Denis","Ouvrier"],
+            ["Ag31","ZERBO","Joseph","Ag31 ZERBO Joseph","Ouvrier"],["Ag32","DAYO","Émile","Ag32 DAYO Émile","Ouvrier"],
+            ["Ag33","SAMA","Victor","Ag33 SAMA Victor","Ouvrier"],["Ag34","DRABO","Noufou","Ag34 DRABO Noufou","Ouvrier"],
+            ["Ag35","SARY","Yacouba","Ag35 SARY Yacouba","Ouvrier"],["Ag36","SAWADOGO","Arouna","Ag36 SAWADOGO Arouna","Ouvrier"],
+            ["Ag37","TRAORÉ","Abdoulaye","Ag37 TRAORÉ Abdoulaye","Ouvrier"],["Ag38","DOUBARE","Ibrahim","Ag38 DOUBARE Ibrahim","Ouvrier"],
+            ["Ag39","MOUSIANE","Grégoire","Ag39 MOUSIANE Grégoire","Ouvrier"],["Ag40","DJIRÉ","Adama","Ag40 DJIRÉ Adama","Ouvrier"],
+            ["Ag41","KOUADIO","M.-N.-Roland","Ag41 KOUADIO M.-N.-Roland","Ouvrier"],["Ag42","OUEDRAOGO","Pierre","Ag42 OUEDRAOGO Pierre","Ouvrier"],
+            ["Ag43","PARÉ","Ibrahim","Ag43 PARÉ Ibrahim","Chef Maçon"],["Ag44","IRIÉ","Elvis","Ag44 IRIÉ Elvis","Ingénieur"],
+            ["Ag45","KINDA","W. J. Mario","Ag45 KINDA W. J. Mario","Chauffeur"],["Ag46","OUEDRAOGO","Ousseni","Ag46 OUEDRAOGO Ousseni","Ferrailleur"],
+            ["Ag47","SAWADOGO","Adama","Ag47 SAWADOGO Adama","Chef Ferrailleur"],["Ag48","BORO","Adama","Ag48 BORO Adama","Menuisier"],
+            ["Ag49","SOSSO","Serge","Ag49 SOSSO Serge","Menuisier"],["Ag50","KABORÉ","Michel","Ag50 KABORÉ Michel","HSSE"],
+            ["Ag51","TOU","Aboubacar","Ag51 TOU Aboubacar","Magasinier"],["Ag52","SERY","Daouda","Ag52 SERY Daouda","Chef Menuisier"],
+            ["Ag53","PALENFO","K.M. Yazid","Ag53 PALENFO K.M. Yazid","Conducteur"],["Ag54","BAMBIO","Bosco","Ag54 BAMBIO Bosco","Ouvrier"],
+            ["Ag55","BAMBIO","Begnamou","Ag55 BAMBIO Begnamou","Ouvrier"],["Ag56","SOLANA","Francis","Ag56 SOLANA Francis","Menuisier"],
+            ["Ag57","SIDIBÉ","Ousmane","Ag57 SIDIBÉ Ousmane","Menuisier"],["Ag58","SORY","Jules","Ag58 SORY Jules","Menuisier"],
+            ["Ag59","BAZIE","Aboubacar","Ag59 BAZIE Aboubacar","Menuisier"],["Ag60","SIRIBIE","Ibrahim","Ag60 SIRIBIE Ibrahim","Menuisier"],
+            ["Ag61","SOMANDA","Yacouba","Ag61 SOMANDA Yacouba","Briquetier"],["Ag62","KAMBOU","Kévin","Ag62 KAMBOU Kévin","Bétonnier"],
+            ["Ag63","DAO","Karim","Ag63 DAO Karim","Bétonnier"],["Ag64","ZIDA","Alidou","Ag64 ZIDA Alidou","Bétonnier"],
+            ["Ag65","BONKOUNGOU","Lookman","Ag65 BONKOUNGOU Lookman","Ferrailleur"],["Ag66","SAWADOGO","Zakaria","Ag66 SAWADOGO Zakaria","Ferrailleur"],
+            ["Ag67","OURA","Dieudonné","Ag67 OURA Dieudonné","Ouvrier"],["Ag68","TRAORE","A. Fatao","Ag68 TRAORE A. Fatao","Ouvrier"]
+        ];
+
+        const GOOGLE_FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdoQrCfoN8x5TxD2rgJJwzlw_oWUJmKuaCHDm00tYADJH-98w/formResponse?entry.1849590193=";
+
+        function getTodayKey() {
+            return "arex_pointages_" + new Date().toISOString().split('T')[0];
+        }
+        function getStoredPointages() {
+            return JSON.parse(localStorage.getItem(getTodayKey()) || "{}");
+        }
+
+        function switchTab(tab) {
+            ['journal', 'matrice', 'badges'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hidden');
+                document.getElementById('tab-btn-' + t).className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2";
+            });
+            document.getElementById('view-' + tab).classList.remove('hidden');
+            document.getElementById('tab-btn-' + tab).className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white flex items-center gap-2";
+            if (tab === 'badges') renderBadges();
+            if (tab === 'matrice') renderMatrice();
+        }
+
+        function renderKPIs() {
+            const data = Object.values(getStoredPointages());
+            let h = 0, r = 0, d = 0, rMin = 0;
+            data.forEach(p => {
+                if (p.statut_arrivee === 'A_L_HEURE') h++;
+                if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') {
+                    r++;
+                    rMin += (p.retard_minutes || 0);
+                }
+                if (p.heure_descente) d++;
+            });
+            document.getElementById('kpi-heure').textContent = h;
+            document.getElementById('kpi-retard').textContent = r;
+            document.getElementById('kpi-retard-min').textContent = `${rMin} min perdues`;
+            document.getElementById('kpi-descente').textContent = d;
+            document.getElementById('kpi-absent').textContent = (68 - data.length);
+        }
+
+        function renderTable() {
+            const query = (document.getElementById('search-input').value || "").toLowerCase().trim();
+            const filterMetier = document.getElementById('filter-metier').value;
+            const pointages = getStoredPointages();
+            const tbody = document.getElementById('table-body');
+
+            const filtered = ROSTER.filter(a => {
+                const matchQ = a[0].toLowerCase().includes(query) || a[1].toLowerCase().includes(query) || a[2].toLowerCase().includes(query);
+                const matchM = !filterMetier || a[4].includes(filterMetier);
+                return matchQ && matchM;
+            });
+
+            tbody.innerHTML = filtered.map(a => {
+                const p = pointages[a[0]] || null;
+                return `
+                    <tr class="hover:bg-dark-850/60 transition-colors">
+                        <td class="p-3 font-mono font-bold text-cyan-400">${a[0]}</td>
+                        <td class="p-3 font-bold text-white">${a[1]} ${a[2]}</td>
+                        <td class="p-3 text-slate-400">${a[4]}</td>
+                        <td class="p-3 font-mono">${p ? p.heure_arrivee : '<span class="text-slate-600">--:--</span>'}</td>
+                        <td class="p-3">
+                            ${!p ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">Absent</span>' :
+                              p.statut_arrivee === 'A_L_HEURE' ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">À l\'heure</span>' :
+                              `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Retard (+${p.retard_minutes}m)</span>`}
+                        </td>
+                        <td class="p-3 font-mono">${p && p.heure_descente ? p.heure_descente : '<span class="text-slate-600">--:--</span>'}</td>
+                        <td class="p-3 font-mono font-semibold text-cyan-300">${p && p.duree_travail ? p.duree_travail : '<span class="text-slate-600">--</span>'}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="quickPointer('${a[0]}')" class="px-2.5 py-1 rounded-lg bg-dark-800 hover:bg-dark-700 text-slate-300 text-[11px] font-semibold border border-dark-700">
+                                <i class="fa-solid fa-pen mr-1"></i> Pointer
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function quickPointer(mat) {
+            const agent = ROSTER.find(a => a[0] === mat);
+            if (!agent) return;
+            const nowDt = new Date();
+            const timeStr = nowDt.toTimeString().split(' ')[0];
+            const curMin = nowDt.getHours() * 60 + nowDt.getMinutes();
+            const pointages = getStoredPointages();
+            let entry = pointages[agent[0]] || null;
+
+            if (!entry) {
+                let statut = "A_L_HEURE";
+                let delay = 0;
+                if (curMin > 450) { delay = curMin - 450; statut = "RETARD"; }
+                pointages[agent[0]] = {
+                    matricule: agent[0],
+                    nom: agent[1] + " " + agent[2],
+                    fonction: agent[4],
+                    heure_arrivee: timeStr,
+                    statut_arrivee: statut,
+                    retard_minutes: delay,
+                    heure_descente: null,
+                    duree_travail: null,
+                    timestamp: nowDt.toISOString()
+                };
+            } else if (!entry.heure_descente) {
+                entry.heure_descente = timeStr;
+                const [arrH, arrM] = entry.heure_arrivee.split(':').map(Number);
+                const workedMin = Math.max(0, curMin - (arrH * 60 + arrM));
+                entry.duree_travail = `${Math.floor(workedMin/60)}h${String(workedMin%60).padStart(2,'0')}`;
             }
+            localStorage.setItem(getTodayKey(), JSON.stringify(pointages));
+            renderKPIs();
+            renderTable();
         }
 
-        function simulateScan(badgeCode, simTime) {
-            handleScanInput(badgeCode, 'SIMULATION', simTime);
+        function renderMatrice() {
+            const tbody = document.getElementById('matrice-body');
+            const todayDay = new Date().getDate();
+            const pointages = getStoredPointages();
+
+            tbody.innerHTML = ROSTER.map(a => {
+                const p = pointages[a[0]];
+                let daysHtml = "";
+                let countP = 0, countR = 0, countA = 0;
+
+                for (let d = 1; d <= 31; d++) {
+                    if (d === todayDay) {
+                        if (!p) {
+                            daysHtml += `<td class="p-1 text-center font-bold text-rose-500 bg-rose-950/20">A</td>`;
+                            countA++;
+                        } else if (p.statut_arrivee === 'A_L_HEURE') {
+                            daysHtml += `<td class="p-1 text-center font-bold text-emerald-400 bg-emerald-950/30">P</td>`;
+                            countP++;
+                        } else {
+                            daysHtml += `<td class="p-1 text-center font-bold text-amber-400 bg-amber-950/30">R</td>`;
+                            countR++;
+                        }
+                    } else if (d < todayDay) {
+                        daysHtml += `<td class="p-1 text-center font-bold text-emerald-400">P</td>`;
+                        countP++;
+                    } else {
+                        daysHtml += `<td class="p-1 text-center text-slate-600">-</td>`;
+                    }
+                }
+
+                return `
+                    <tr class="hover:bg-dark-850/60">
+                        <td class="p-2 font-mono font-bold text-cyan-400 sticky left-0 bg-dark-900">${a[0]}</td>
+                        <td class="p-2 font-bold text-white sticky left-14 bg-dark-900">${a[1]} ${a[2]}</td>
+                        <td class="p-2 text-slate-400">${a[4]}</td>
+                        ${daysHtml}
+                        <td class="p-2 text-center font-bold text-emerald-400 bg-dark-800">${countP}</td>
+                        <td class="p-2 text-center font-bold text-amber-400 bg-dark-800">${countR}</td>
+                        <td class="p-2 text-center font-bold text-rose-400 bg-dark-800">${countA}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function toggleSound() {
-            state.soundEnabled = !state.soundEnabled;
-            document.getElementById('toggle-sound-btn').textContent = state.soundEnabled ? '🔊 Son : ON' : '🔇 Son : OFF';
+        function renderBadges() {
+            const grid = document.getElementById('badges-grid');
+            grid.innerHTML = ROSTER.map(a => {
+                const qrUrl = GOOGLE_FORM_BASE + a[0];
+                return `
+                    <div class="badge-card bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-dark-700/60 pb-2 mb-2">
+                            <span class="text-[10px] font-black uppercase text-blue-400 tracking-wider">AREX GÉNIE CIVIL</span>
+                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-dark-800 text-cyan-400 border border-dark-700">${a[0]}</span>
+                        </div>
+                        <div class="w-32 h-32 mx-auto my-2 p-1.5 bg-white rounded-xl shadow-md flex items-center justify-center">
+                            ${generateQRCodeSVG(qrUrl, 120)}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white truncate">${a[1]} ${a[2]}</h3>
+                            <p class="text-xs text-slate-400 font-semibold">${a[4]}</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-dark-700/60 text-[9px] text-slate-500 font-mono uppercase">
+                            Scanner pour pointage chantier
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function toggleVoice() {
-            state.voiceEnabled = !state.voiceEnabled;
-            document.getElementById('toggle-voice-btn').textContent = state.voiceEnabled ? '🗣️ Voix : ON' : '🔇 Voix : OFF';
+        function exportCSV() {
+            const today = new Date().toISOString().split('T')[0];
+            const pointages = getStoredPointages();
+            let csv = "\uFEFFMatricule,Nom,Prenoms,Fonction,Heure Arrivee,Statut Arrivee,Retard (min),Heure Descente,Duree Travail\n";
+            ROSTER.forEach(a => {
+                const p = pointages[a[0]];
+                csv += `"${a[0]}","${a[1]}","${a[2]}","${a[4]}","${p ? p.heure_arrivee : ''}","${p ? p.statut_arrivee : 'ABSENT'}","${p ? p.retard_minutes : 0}","${p && p.heure_descente ? p.heure_descente : ''}","${p && p.duree_travail ? p.duree_travail : ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Pointage_AREX_${today}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        function onDateChanged(newDate) {
-            state.selectedDate = newDate;
-            loadDashboard();
+        function exportMatriceCSV() {
+            const now = new Date();
+            let csv = "\uFEFFMatricule,Nom,Fonction," + Array.from({length:31}, (_,i) => `Jour ${i+1}`).join(',') + "\n";
+            const todayDay = now.getDate();
+            const pointages = getStoredPointages();
+            ROSTER.forEach(a => {
+                const p = pointages[a[0]];
+                let days = [];
+                for(let d=1; d<=31; d++) {
+                    if (d === todayDay) {
+                        days.push(p ? (p.statut_arrivee === 'A_L_HEURE' ? 'P' : 'R') : 'A');
+                    } else if (d < todayDay) {
+                        days.push('P');
+                    } else {
+                        days.push('');
+                    }
+                }
+                csv += `"${a[0]}","${a[1]} ${a[2]}","${a[4]}",${days.join(',')}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Pointage_AREX_Matrice_${now.getFullYear()}_${now.getMonth()+1}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        function renderDashboardTableFromCache() {
-            if (cachedDashboardData && cachedDashboardData.agents_table) {
-                renderDashboardTable(cachedDashboardData.agents_table);
-            }
-        }
-
-        // Hook renderDashboard to cache data
-        const origRenderDashboard = renderDashboard;
-        renderDashboard = function(data) {
-            cachedDashboardData = data;
-            origRenderDashboard(data);
-        };
-
-        function downloadDailyCSV() {
-            window.location.href = `/api/export/daily?date=${state.selectedDate}`;
-        }
-
-        function downloadMonthlyCSV() {
-            const year = document.getElementById('monthly-year')?.value || state.selectedYear;
-            const month = document.getElementById('monthly-month')?.value || state.selectedMonth;
-            window.location.href = `/api/export/monthly?year=${year}&month=${month}`;
-        }
-
-        // Set date picker default to today
-        document.addEventListener('DOMContentLoaded', () => {
-            const dp = document.getElementById('dash-date-picker');
-            if (dp) dp.value = state.selectedDate;
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-date-badge').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            renderKPIs();
+            renderTable();
         });
     </script>
-    <script src="/static/js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Scanner AREX - Pointage Chantier BTP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 950: '#070a12', 900: '#0b0f19', 850: '#0f172a', 800: '#1e293b', 700: '#334155' },
+                        brand: { 500: '#2563eb', 600: '#1d4ed8' },
+                        btp: { orange: '#f97316', yellow: '#eab308' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- HTML5 QRCode Scanner CDN -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070a12; }
+        @keyframes scanline {
+            0% { top: 4%; opacity: 0.8; }
+            50% { top: 94%; opacity: 1; }
+            100% { top: 4%; opacity: 0.8; }
+        }
+        .laser-line {
+            position: absolute;
+            left: 5%; width: 90%; height: 3px;
+            background: linear-gradient(90deg, transparent, #22c55e, #3b82f6, #22c55e, transparent);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.9), 0 0 25px rgba(59, 130, 246, 0.8);
+            border-radius: 9999px;
+            animation: scanline 2.2s ease-in-out infinite;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .corner { position: absolute; width: 28px; height: 28px; border-color: #38bdf8; z-index: 21; pointer-events: none; }
+        .corner-tl { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 12px; }
+        .corner-tr { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 12px; }
+        .corner-bl { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 12px; }
+        .corner-br { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 12px; }
+        #qr-video-reader video { object-fit: cover !important; border-radius: 1rem; width: 100% !important; height: 100% !important; }
+        #qr-video-reader { border: none !important; width: 100% !important; background: #000; }
+        #qr-video-reader img[alt="Info icon"] { display: none !important; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+    <!-- HEADER PRO -->
+    <header class="bg-dark-900/90 backdrop-blur-md border-b border-dark-700/60 sticky top-0 z-50 px-4 py-2.5">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30 text-white font-extrabold text-sm">
+                    PA
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="text-sm font-bold tracking-tight text-white">POINTAGE AREX</h1>
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium">Chantier BTP &bull; Bobo-Dioulasso</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="bg-dark-800 border border-dark-700/80 px-2.5 py-1 rounded-lg text-right">
+                    <div id="clock-display" class="text-xs font-mono font-bold text-cyan-400">--:--:--</div>
+                    <div id="date-display" class="text-[9px] text-slate-400 uppercase font-semibold tracking-wider">--/--</div>
+                </div>
+                <button id="btn-audio" onclick="toggleAudio()" class="w-8 h-8 rounded-lg bg-dark-800 border border-dark-700 text-slate-300 hover:text-white flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PHASE DYNAMIQUE -->
+    <div id="phase-banner" class="bg-emerald-950/80 border-b border-emerald-500/30 py-1.5 px-4 text-center transition-all duration-300">
+        <div class="max-w-md mx-auto flex items-center justify-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="phase-title">ARRIVÉE : POINTAGE À L'HEURE (06H00 - 07H30)</span>
+        </div>
+    </div>
+
+    <!-- MAIN SCANNER -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-3 flex flex-col justify-start gap-3">
+
+        <!-- CAMERA VIEWFINDER -->
+        <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-black border-2 border-dark-700 shadow-2xl flex items-center justify-center">
+            <div id="qr-video-reader" class="w-full h-full"></div>
+
+            <!-- Target Reticle Overlay -->
+            <div id="scan-reticle" class="absolute inset-8 pointer-events-none transition-all duration-300">
+                <div class="laser-line"></div>
+                <div class="corner corner-tl"></div>
+                <div class="corner corner-tr"></div>
+                <div class="corner corner-bl"></div>
+                <div class="corner corner-br"></div>
+            </div>
+
+            <!-- Camera Controls Floating -->
+            <div class="absolute bottom-2.5 right-2.5 z-30 flex items-center gap-1.5">
+                <button onclick="toggleTorch()" id="btn-torch" class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-slate-300 border border-white/10 hover:text-white text-xs flex items-center gap-1.5 hidden">
+                    <i class="fa-solid fa-bolt"></i> Flash
+                </button>
+                <button onclick="restartCamera()" class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-slate-300 border border-white/10 hover:text-white text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i> Relancer
+                </button>
+            </div>
+        </div>
+
+        <!-- RESULT POPUP CARD -->
+        <div id="result-card" class="hidden transition-all duration-300 transform scale-95 opacity-0 rounded-2xl p-4 border bg-dark-900 shadow-2xl">
+            <div class="flex items-start gap-3.5">
+                <div id="card-avatar" class="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center text-2xl font-black shrink-0">
+                    <i class="fa-solid fa-helmet-safety"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="card-matricule" class="text-xs font-mono font-extrabold px-2 py-0.5 rounded-md bg-dark-800 text-cyan-400 border border-dark-700">Ag1</span>
+                        <span id="card-status-badge" class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">À L'HEURE</span>
+                    </div>
+                    <h2 id="card-nom" class="text-base font-extrabold text-white truncate mt-1">BAZIÉ Laurent</h2>
+                    <p id="card-fonction" class="text-xs text-slate-400 font-medium">Ouvrier Maçon &bull; AREX BTP</p>
+                    <div class="mt-2.5 pt-2 border-t border-dark-700/60 flex items-center justify-between text-xs">
+                        <span id="card-time" class="font-mono text-slate-300"><i class="fa-regular fa-clock mr-1 text-slate-500"></i>07:12:05</span>
+                        <span id="card-detail" class="text-slate-400 font-semibold">Arrivée enregistrée</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY ALERT POPUP -->
+        <div id="alert-card" class="hidden rounded-2xl p-4 border border-rose-500/50 bg-rose-950/80 shadow-2xl shadow-rose-950/50">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-rose-200">ANOMALIE DE SÉCURITÉ</h3>
+                    <p id="alert-message" class="text-xs text-rose-300/90 mt-0.5 leading-relaxed">Descente refusée : aucune arrivée enregistrée ce matin pour cet ouvrier.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK STATS BAR -->
+        <div class="grid grid-cols-4 gap-2 text-center">
+            <div class="bg-dark-900 border border-dark-700/70 rounded-xl p-2">
+                <div class="text-[10px] text-slate-400 uppercase font-semibold">Total</div>
+                <div class="text-base font-extrabold text-white">68</div>
+            </div>
+            <div class="bg-dark-900 border border-dark-700/70 rounded-xl p-2">
+                <div class="text-[10px] text-emerald-400 uppercase font-semibold">À l'heure</div>
+                <div id="stat-heure" class="text-base font-extrabold text-emerald-400">0</div>
+            </div>
+            <div class="bg-dark-900 border border-dark-700/70 rounded-xl p-2">
+                <div class="text-[10px] text-amber-400 uppercase font-semibold">Retards</div>
+                <div id="stat-retard" class="text-base font-extrabold text-amber-400">0</div>
+            </div>
+            <div class="bg-dark-900 border border-dark-700/70 rounded-xl p-2">
+                <div class="text-[10px] text-cyan-400 uppercase font-semibold">Descentes</div>
+                <div id="stat-descente" class="text-base font-extrabold text-cyan-400">0</div>
+            </div>
+        </div>
+
+        <!-- RECENT SCANS LIST -->
+        <div class="bg-dark-900 border border-dark-700/70 rounded-2xl p-3 flex-1">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-blue-500"></i> Derniers Scans Aujourd'hui
+                </span>
+                <span id="scans-count" class="text-[11px] px-2 py-0.5 rounded-full bg-dark-800 text-slate-400 font-mono">0 scanné(s)</span>
+            </div>
+            <div id="recent-scans-list" class="space-y-1.5 overflow-y-auto max-h-36 pr-1">
+                <div class="text-center py-4 text-xs text-slate-500 italic">En attente des premiers scans...</div>
+            </div>
+        </div>
+
+        <!-- FALLBACK MANUAL MODAL TRIGGER -->
+        <div class="flex gap-2">
+            <button onclick="openManualModal()" class="flex-1 py-2.5 rounded-xl bg-dark-800 border border-dark-700 hover:bg-dark-700 text-xs font-bold text-slate-300 hover:text-white flex items-center justify-center gap-2">
+                <i class="fa-solid fa-keyboard text-slate-400"></i> Saisie Manuelle (Sans Badge)
+            </button>
+            <a href="index.html" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30">
+                <i class="fa-solid fa-chart-pie"></i> Direction RH
+            </a>
+        </div>
+
+    </main>
+
+    <!-- MANUAL MODAL -->
+    <div id="manual-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-dark-900 border border-dark-700 rounded-2xl max-w-sm w-full p-4 shadow-2xl">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-check text-blue-500"></i> Pointer Manuellement un Ouvrier
+                </h3>
+                <button onclick="closeManualModal()" class="w-7 h-7 rounded-lg bg-dark-800 text-slate-400 hover:text-white flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="mb-3">
+                <input id="manual-search" type="text" placeholder="Rechercher par nom ou Ag..." class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+            </div>
+            <div id="manual-agents-list" class="space-y-1 max-h-60 overflow-y-auto pr-1 mb-3"></div>
+            <button onclick="closeManualModal()" class="w-full py-2 rounded-xl bg-dark-800 text-slate-300 text-xs font-semibold">Annuler</button>
+        </div>
+    </div>
+
+    <!-- AUDIO BEEP CONTEXT -->
+    <script>
+        const ROSTER = [
+            ["Ag1","BAZIÉ","Laurent","Ag1 BAZIÉ LAURENT","Ouvrier"],["Ag2","LENGA","Lambert","Ag2 LENGA LAMBERT","Ouvrier"],
+            ["Ag3","ZONGO","Antoine","Ag3 ZONGO ANTOINE","Ouvrier"],["Ag4","NENKELSE","Bertrand","Ag4 NENKELSE BERTRAND","Ouvrier"],
+            ["Ag5","KONATÉ","Henry","Ag5 KONATÉ HENRY","Ouvrier"],["Ag6","DEMBÉLÉ","Bienvenu","Ag6 DEMBÉLÉ BIENVENU","Ouvrier"],
+            ["Ag7","ZAGRÉ","Franck","Ag7 ZAGRÉ FRANCK","Ouvrier"],["Ag8","DEMBÉLÉ","Issouf","Ag8 DEMBÉLÉ ISSOUF","Ouvrier"],
+            ["Ag9","SANOU","Bernard","Ag9 SANOU BERNARD","Ouvrier"],["Ag10","BAZIÉ","Roland","Ag10 BAZIÉ ROLAND","Ouvrier"],
+            ["Ag11","BAZIÉ","A. Rahim","Ag11 BAZIÉ A.RAHIM","Ouvrier"],["Ag12","BATIENE","S.M.S.G. Juldas","Ag12 BATIENE S.M.S.G.JULDAS","Ouvrier"],
+            ["Ag13","KONAN","Kouame-Alphonse","Ag13 KONAN KOUAME-ALPHONSE","Ouvrier"],["Ag14","TANO","N'Gessan","Ag14 TANO N'GESSAN","Ouvrier"],
+            ["Ag15","SANOU","Zephirin","Ag15 SANOU ZEPHIRIN","Ouvrier"],["Ag16","OUATTARA","Hamidou","Ag16 OUATTARA Hamidou","Ouvrier"],
+            ["Ag17","ZIE","Honoré","Ag17 ZIE HONORÉ","Ouvrier"],["Ag18","NIAMBA","Simon","Ag18 NIAMBA SIMON","Ouvrier"],
+            ["Ag19","ZONGO","S-Mohamadi","Ag19 ZONGO S-MOHAMADI","Ouvrier"],["Ag20","TRAORE","Bayoa","Ag20 TRAORE BAYOA","Ouvrier"],
+            ["Ag21","NEYA","Belibi-Denis","Ag21 NEYA BELIBI-DENIS","Ouvrier"],["Ag22","RABO","Mohamed-Lamine","Ag22 RABO MOHAMED-LAMINE","Ouvrier"],
+            ["Ag23","SANOU","Alain","Ag23 SANOU ALAIN","Ouvrier"],["Ag24","SANOU","Aboubacar","Ag24 SANOU ABOUBACAR","Ouvrier"],
+            ["Ag25","DAYO","Vincent","Ag25 DAYO Vincent","Ouvrier"],["Ag26","DOYÉ","Toumbé","Ag26 DOYÉ Toumbé","Ouvrier"],
+            ["Ag27","DOYÉ","Dapoba","Ag27 DOYÉ Dapoba","Ouvrier"],["Ag28","DOYÉ","Romuald","Ag28 DOYÉ Romuald","Ouvrier"],
+            ["Ag29","WOIN","Madou","Ag29 WOIN Madou","Ouvrier"],["Ag30","KONDÉ","Denis","Ag30 KONDÉ Denis","Ouvrier"],
+            ["Ag31","ZERBO","Joseph","Ag31 ZERBO Joseph","Ouvrier"],["Ag32","DAYO","Émile","Ag32 DAYO Émile","Ouvrier"],
+            ["Ag33","SAMA","Victor","Ag33 SAMA Victor","Ouvrier"],["Ag34","DRABO","Noufou","Ag34 DRABO Noufou","Ouvrier"],
+            ["Ag35","SARY","Yacouba","Ag35 SARY Yacouba","Ouvrier"],["Ag36","SAWADOGO","Arouna","Ag36 SAWADOGO Arouna","Ouvrier"],
+            ["Ag37","TRAORÉ","Abdoulaye","Ag37 TRAORÉ Abdoulaye","Ouvrier"],["Ag38","DOUBARE","Ibrahim","Ag38 DOUBARE Ibrahim","Ouvrier"],
+            ["Ag39","MOUSIANE","Grégoire","Ag39 MOUSIANE Grégoire","Ouvrier"],["Ag40","DJIRÉ","Adama","Ag40 DJIRÉ Adama","Ouvrier"],
+            ["Ag41","KOUADIO","M.-N.-Roland","Ag41 KOUADIO M.-N.-Roland","Ouvrier"],["Ag42","OUEDRAOGO","Pierre","Ag42 OUEDRAOGO Pierre","Ouvrier"],
+            ["Ag43","PARÉ","Ibrahim","Ag43 PARÉ Ibrahim","Chef Maçon"],["Ag44","IRIÉ","Elvis","Ag44 IRIÉ Elvis","Ingénieur"],
+            ["Ag45","KINDA","W. J. Mario","Ag45 KINDA W. J. Mario","Chauffeur"],["Ag46","OUEDRAOGO","Ousseni","Ag46 OUEDRAOGO Ousseni","Ferrailleur"],
+            ["Ag47","SAWADOGO","Adama","Ag47 SAWADOGO Adama","Chef Ferrailleur"],["Ag48","BORO","Adama","Ag48 BORO Adama","Menuisier"],
+            ["Ag49","SOSSO","Serge","Ag49 SOSSO Serge","Menuisier"],["Ag50","KABORÉ","Michel","Ag50 KABORÉ Michel","HSSE"],
+            ["Ag51","TOU","Aboubacar","Ag51 TOU Aboubacar","Magasinier"],["Ag52","SERY","Daouda","Ag52 SERY Daouda","Chef Menuisier"],
+            ["Ag53","PALENFO","K.M. Yazid","Ag53 PALENFO K.M. Yazid","Conducteur"],["Ag54","BAMBIO","Bosco","Ag54 BAMBIO Bosco","Ouvrier"],
+            ["Ag55","BAMBIO","Begnamou","Ag55 BAMBIO Begnamou","Ouvrier"],["Ag56","SOLANA","Francis","Ag56 SOLANA Francis","Menuisier"],
+            ["Ag57","SIDIBÉ","Ousmane","Ag57 SIDIBÉ Ousmane","Menuisier"],["Ag58","SORY","Jules","Ag58 SORY Jules","Menuisier"],
+            ["Ag59","BAZIE","Aboubacar","Ag59 BAZIE Aboubacar","Menuisier"],["Ag60","SIRIBIE","Ibrahim","Ag60 SIRIBIE Ibrahim","Menuisier"],
+            ["Ag61","SOMANDA","Yacouba","Ag61 SOMANDA Yacouba","Briquetier"],["Ag62","KAMBOU","Kévin","Ag62 KAMBOU Kévin","Bétonnier"],
+            ["Ag63","DAO","Karim","Ag63 DAO Karim","Bétonnier"],["Ag64","ZIDA","Alidou","Ag64 ZIDA Alidou","Bétonnier"],
+            ["Ag65","BONKOUNGOU","Lookman","Ag65 BONKOUNGOU Lookman","Ferrailleur"],["Ag66","SAWADOGO","Zakaria","Ag66 SAWADOGO Zakaria","Ferrailleur"],
+            ["Ag67","OURA","Dieudonné","Ag67 OURA Dieudonné","Ouvrier"],["Ag68","TRAORE","A. Fatao","Ag68 TRAORE A. Fatao","Ouvrier"]
+        ];
+
+        let audioEnabled = true;
+        let html5QrCode = null;
+        let lastScanTime = 0;
+        let lastScanCode = "";
+
+        // Audio synthesizer
+        function playChime(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (type === 'success') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                    osc.start(); osc.stop(ctx.currentTime + 0.25);
+                } else if (type === 'warning') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.setValueAtTime(330, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'alarm') {
+                    for (let i = 0; i < 3; i++) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.frequency.setValueAtTime(880, ctx.currentTime + (i * 0.12));
+                        osc.frequency.setValueAtTime(440, ctx.currentTime + (i * 0.12) + 0.06);
+                        gain.gain.setValueAtTime(0.4, ctx.currentTime + (i * 0.12));
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + (i * 0.12) + 0.1);
+                        osc.start(ctx.currentTime + (i * 0.12));
+                        osc.stop(ctx.currentTime + (i * 0.12) + 0.1);
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function speak(text) {
+            if (!audioEnabled || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'fr-FR'; u.rate = 1.05;
+                window.speechSynthesis.speak(u);
+            } catch(e) {}
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('btn-audio');
+            btn.innerHTML = audioEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-rose-400"></i>';
+        }
+
+        // Clock & Dynamic Phase
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock-display').textContent = `${h}:${m}:${s}`;
+            document.getElementById('date-display').textContent = now.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' });
+
+            const curMin = now.getHours() * 60 + now.getMinutes();
+            const banner = document.getElementById('phase-banner');
+            const pTitle = document.getElementById('phase-title');
+
+            if (curMin < 450) { // < 7h30
+                banner.className = "bg-emerald-950/80 border-b border-emerald-500/30 py-1.5 px-4 text-center transition-all duration-300";
+                pTitle.className = "text-emerald-400";
+                pTitle.textContent = "ARRIVÉE : POINTAGE À L'HEURE (06H00 - 07H30)";
+            } else if (curMin < 540) { // 7h30 - 9h00
+                banner.className = "bg-amber-950/80 border-b border-amber-500/30 py-1.5 px-4 text-center transition-all duration-300";
+                pTitle.className = "text-amber-400";
+                pTitle.textContent = "ARRIVÉE : POINTAGE EN RETARD (07H30 - 09H00)";
+            } else if (curMin < 960) { // 9h00 - 16h00
+                banner.className = "bg-rose-950/80 border-b border-rose-500/30 py-1.5 px-4 text-center transition-all duration-300";
+                pTitle.className = "text-rose-400";
+                pTitle.textContent = "ARRIVÉE HORS DÉLAI / TRAVAIL EN COURS";
+            } else { // 16h00+
+                banner.className = "bg-cyan-950/80 border-b border-cyan-500/30 py-1.5 px-4 text-center transition-all duration-300";
+                pTitle.className = "text-cyan-400";
+                pTitle.textContent = "DESCENTE : POINTAGE DE SORTIE (DÈS 16H00)";
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Data Storage
+        function getTodayKey() {
+            return "arex_pointages_" + new Date().toISOString().split('T')[0];
+        }
+        function getStoredPointages() {
+            return JSON.parse(localStorage.getItem(getTodayKey()) || "{}");
+        }
+        function saveStoredPointages(data) {
+            localStorage.setItem(getTodayKey(), JSON.stringify(data));
+            renderStats();
+            renderRecentScans();
+        }
+
+        // Process Scan Logic
+        function handleScan(rawCode) {
+            const now = Date.now();
+            if (rawCode === lastScanCode && (now - lastScanTime) < 30000) {
+                // Ignore debounce
+                return;
+            }
+            lastScanCode = rawCode;
+            lastScanTime = now;
+
+            // Extract matricule
+            let matricule = rawCode.trim();
+            if (matricule.includes("entry.1849590193=")) {
+                matricule = matricule.split("entry.1849590193=")[1].split("&")[0];
+            } else if (matricule.includes("/")) {
+                matricule = matricule.split("/").pop();
+            }
+            matricule = matricule.toUpperCase().trim();
+            if (matricule.startsWith("AG") && !matricule.startsWith("Ag")) {
+                matricule = "Ag" + matricule.substring(2);
+            }
+
+            const agent = ROSTER.find(a => a[0].toLowerCase() === matricule.toLowerCase());
+            if (!agent) {
+                showAlert("Badge non reconnu (" + matricule + "). Veuillez vérifier la carte.");
+                playChime('warning');
+                return;
+            }
+
+            const nowDt = new Date();
+            const timeStr = nowDt.toTimeString().split(' ')[0];
+            const curMin = nowDt.getHours() * 60 + nowDt.getMinutes();
+            const pointages = getStoredPointages();
+            let entry = pointages[agent[0]] || null;
+
+            hideAlert();
+
+            if (!entry) {
+                // First scan of the day -> ARRIVÉE
+                let statut = "A_L_HEURE";
+                let badgeText = "À L'HEURE";
+                let detail = "Arrivée enregistrée à l'heure";
+                let delay = 0;
+
+                if (curMin > 450 && curMin <= 540) { // 7h30 - 9h00
+                    delay = curMin - 450;
+                    statut = "RETARD";
+                    badgeText = `RETARD (+${delay}m)`;
+                    detail = `Retard de ${delay} minutes calculé`;
+                } else if (curMin > 540) { // > 9h00
+                    delay = curMin - 450;
+                    statut = "HORS_DELAI";
+                    badgeText = "HORS DÉLAI";
+                    detail = "Arrivée tardive après 09h00";
+                }
+
+                entry = {
+                    matricule: agent[0],
+                    nom: agent[1] + " " + agent[2],
+                    fonction: agent[4],
+                    heure_arrivee: timeStr,
+                    statut_arrivee: statut,
+                    retard_minutes: delay,
+                    heure_descente: null,
+                    statut_descente: null,
+                    duree_travail: null,
+                    timestamp: nowDt.toISOString()
+                };
+
+                pointages[agent[0]] = entry;
+                saveStoredPointages(pointages);
+
+                showCard(agent, entry, badgeText, detail, statut);
+                if (statut === 'A_L_HEURE') {
+                    playChime('success');
+                    speak(`${agent[1]} ${agent[2]}, pointage à l'heure`);
+                } else {
+                    playChime('warning');
+                    speak(`${agent[1]} ${agent[2]}, en retard de ${delay} minutes`);
+                }
+            } else {
+                // Second scan -> DESCENTE
+                if (curMin < 960) { // Avant 16h00
+                    showAlert(`Descente non autorisée avant 16h00 pour ${agent[1]} ${agent[2]}.`);
+                    playChime('warning');
+                    return;
+                }
+
+                if (entry.heure_descente) {
+                    showAlert(`${agent[1]} ${agent[2]} a déjà pointé sa descente à ${entry.heure_descente}.`);
+                    playChime('warning');
+                    return;
+                }
+
+                // Compute work duration
+                const [arrH, arrM] = entry.heure_arrivee.split(':').map(Number);
+                const workedMin = Math.max(0, curMin - (arrH * 60 + arrM));
+                const durH = Math.floor(workedMin / 60);
+                const durM = workedMin % 60;
+                const durStr = `${durH}h${String(durM).padStart(2,'0')}`;
+
+                entry.heure_descente = timeStr;
+                entry.statut_descente = "DESCENTE";
+                entry.duree_travail = durStr;
+
+                pointages[agent[0]] = entry;
+                saveStoredPointages(pointages);
+
+                showCard(agent, entry, "DESCENTE", `Journée terminée (${durStr} trav.)`, "DESCENTE");
+                playChime('success');
+                speak(`Descente validée pour ${agent[1]} ${agent[2]}. Durée : ${durH} heures et ${durM} minutes.`);
+            }
+        }
+
+        function showCard(agent, entry, badgeText, detail, statut) {
+            const card = document.getElementById('result-card');
+            document.getElementById('card-matricule').textContent = agent[0];
+            document.getElementById('card-nom').textContent = agent[1] + " " + agent[2];
+            document.getElementById('card-fonction').textContent = agent[4] + " \u2022 AREX BTP";
+            document.getElementById('card-time').innerHTML = `<i class="fa-regular fa-clock mr-1 text-slate-500"></i>${entry.heure_descente || entry.heure_arrivee}`;
+            document.getElementById('card-detail').textContent = detail;
+
+            const badge = document.getElementById('card-status-badge');
+            badge.textContent = badgeText;
+            if (statut === 'A_L_HEURE') {
+                badge.className = "text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+            } else if (statut === 'RETARD') {
+                badge.className = "text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40";
+            } else if (statut === 'HORS_DELAI') {
+                badge.className = "text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40";
+            } else {
+                badge.className = "text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40";
+            }
+
+            card.classList.remove('hidden');
+            setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 10);
+
+            // Animate Reticle green pulse
+            const reticle = document.getElementById('scan-reticle');
+            reticle.style.borderColor = "#22c55e";
+            setTimeout(() => { reticle.style.borderColor = "#38bdf8"; }, 1500);
+        }
+
+        function showAlert(msg) {
+            const a = document.getElementById('alert-card');
+            document.getElementById('alert-message').textContent = msg;
+            a.classList.remove('hidden');
+        }
+        function hideAlert() {
+            document.getElementById('alert-card').classList.add('hidden');
+        }
+
+        function renderStats() {
+            const data = Object.values(getStoredPointages());
+            let h = 0, r = 0, d = 0;
+            data.forEach(p => {
+                if (p.statut_arrivee === 'A_L_HEURE') h++;
+                if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') r++;
+                if (p.heure_descente) d++;
+            });
+            document.getElementById('stat-heure').textContent = h;
+            document.getElementById('stat-retard').textContent = r;
+            document.getElementById('stat-descente').textContent = d;
+            document.getElementById('scans-count').textContent = `${data.length} scanné(s)`;
+        }
+
+        function renderRecentScans() {
+            const list = document.getElementById('recent-scans-list');
+            const data = Object.values(getStoredPointages()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+            if (data.length === 0) {
+                list.innerHTML = `<div class="text-center py-4 text-xs text-slate-500 italic">En attente des premiers scans...</div>`;
+                return;
+            }
+            list.innerHTML = data.map(p => `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-dark-800/80 border border-dark-700/50 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono font-bold text-cyan-400 text-[11px]">${p.matricule}</span>
+                        <span class="font-bold text-white">${p.nom}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-slate-400 text-[11px]">${p.heure_descente || p.heure_arrivee}</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${p.heure_descente ? 'bg-cyan-500/20 text-cyan-300' : p.statut_arrivee === 'A_L_HEURE' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">${p.heure_descente ? 'Descente' : p.statut_arrivee === 'A_L_HEURE' ? 'À l\'heure' : 'Retard'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Camera Initialization
+        function startCamera() {
+            html5QrCode = new Html5Qrcode("qr-video-reader");
+            const config = { fps: 15, qrbox: { width: 220, height: 220 } };
+
+            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                handleScan(decodedText);
+            }).catch(err => {
+                console.warn("Back camera error, trying default:", err);
+                html5QrCode.start({ facingMode: "user" }, config, (decodedText) => {
+                    handleScan(decodedText);
+                }).catch(e => {
+                    showAlert("Impossible d'accéder à la caméra. Autorisez l'accès caméra dans votre navigateur.");
+                });
+            });
+        }
+
+        function restartCamera() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => { startCamera(); }).catch(() => { startCamera(); });
+            } else {
+                startCamera();
+            }
+        }
+
+        // Manual Selection
+        function openManualModal() {
+            document.getElementById('manual-modal').classList.remove('hidden');
+            renderManualList();
+            document.getElementById('manual-search').focus();
+        }
+        function closeManualModal() {
+            document.getElementById('manual-modal').classList.add('hidden');
+        }
+        function renderManualList(filter = "") {
+            const c = document.getElementById('manual-agents-list');
+            const filtered = ROSTER.filter(a => a[1].toLowerCase().includes(filter) || a[2].toLowerCase().includes(filter) || a[0].toLowerCase().includes(filter));
+            c.innerHTML = filtered.map(a => `
+                <div onclick="selectManual('${a[0]}')" class="flex items-center justify-between p-2 rounded-xl bg-dark-800 border border-dark-700/80 hover:bg-dark-700 cursor-pointer text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-cyan-400 font-bold">${a[0]}</span>
+                        <span class="text-white font-semibold">${a[1]} ${a[2]}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">${a[4]}</span>
+                </div>
+            `).join('');
+        }
+        document.getElementById('manual-search').addEventListener('input', (e) => {
+            renderManualList(e.target.value.toLowerCase().trim());
+        });
+        function selectManual(mat) {
+            closeManualModal();
+            handleScan(mat);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStats();
+            renderRecentScans();
+            setTimeout(startCamera, 400);
+        });
+    </script>
+</body>
+</html>
