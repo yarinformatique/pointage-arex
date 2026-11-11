@@ -1,244 +1,223 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Direction AREX - Tableau de Bord Pointage BTP</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: { 950: '#070a12', 900: '#0b0f19', 850: '#0f172a', 800: '#1e293b', 700: '#334155' }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070a12; }
+        :root {
+            --bg-dark: #070a12;
+            --card-dark: #0f172a;
+            --border-dark: #334155;
+            --primary: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --cyan: #06b6d4;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* Navbar */
+        header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 50; padding: 12px 24px; }
+        .nav-wrap { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-badge { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.4); }
+        .brand-title { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+        .badge-online { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .brand-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .btn { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.4); }
+        .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid var(--border-dark); }
+        .btn-secondary:hover { background: #334155; }
+
+        /* Navigation Tabs */
+        .tabs-bar { background: #0b1120; border-bottom: 1px solid var(--border-dark); padding: 8px 24px; }
+        .tabs-wrap { max-width: 1200px; margin: 0 auto; display: flex; gap: 8px; }
+        .tab-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1px solid transparent; background: #1e293b; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: var(--primary); color: #fff; }
+        .tab-btn:hover:not(.active) { color: #fff; background: #334155; }
+
+        /* Main Container */
+        main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+        .kpi-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .kpi-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+        .kpi-val { font-size: 26px; font-weight: 900; margin: 4px 0; }
+        .kpi-sub { font-size: 11px; color: var(--text-muted); }
+
+        /* Views */
+        .view-section { display: none; flex-direction: column; gap: 14px; }
+        .view-section.active { display: flex; }
+
+        /* Table Card */
+        .table-card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); overflow: hidden; }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .search-input { padding: 8px 12px; border-radius: 8px; background: #1e293b; border: 1px solid var(--border-dark); color: #fff; font-size: 12px; min-width: 240px; outline: none; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        th { background: #1e293b; color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; border-bottom: 1px solid var(--border-dark); }
+        td { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
+        tr:hover td { background: rgba(30, 41, 59, 0.5); }
+
+        .badge-status { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; display: inline-block; }
+        .badge-p { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-r { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .badge-a { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-d { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+
+        /* Badges Grid */
+        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+        .badge-box { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 12px; padding: 14px; text-align: center; }
+        .badge-head { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .qr-frame { width: 120px; height: 120px; margin: 8px auto; background: #fff; border-radius: 8px; padding: 6px; display: flex; align-items: center; justify-content: center; }
+
         @media print {
+            header, .tabs-bar, .kpi-grid, .table-toolbar, .btn, .no-print { display: none !important; }
             body { background: #fff !important; color: #000 !important; }
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            .badge-card { break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+            main { max-width: 100% !important; padding: 0 !important; }
+            .view-section { display: block !important; }
+            .badge-box { border: 1px solid #999 !important; background: #fff !important; color: #000 !important; break-inside: avoid; }
+            .badge-head { color: #000 !important; border-bottom: 1px solid #ccc !important; }
+            .agent-name { color: #000 !important; }
         }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+<body>
 
-    <!-- NAVBAR DIRECTION -->
-    <header class="no-print bg-dark-900/95 backdrop-blur-md border-b border-dark-700/80 sticky top-0 z-50 px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-black text-base">
-                    PA
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-base font-extrabold tracking-tight text-white">POINTAGE AREX &bull; DIRECTION RH</h1>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">EN LIGNE</span>
-                    </div>
-                    <p class="text-xs text-slate-400">Génie Civil & BTP &bull; Suivi de Chantier 68 Ouvriers &bull; Bobo-Dioulasso</p>
+    <!-- NAVBAR -->
+    <header class="no-print">
+        <div class="nav-wrap">
+            <div class="brand">
+                <div class="brand-badge">PA</div>
+                <div class="brand-text">
+                    <div class="brand-title">POINTAGE AREX &bull; DIRECTION RH <span class="badge-online">EN LIGNE</span></div>
+                    <div class="brand-sub">Génie Civil & BTP &bull; Suivi 68 Ouvriers &bull; Bobo-Dioulasso</div>
                 </div>
             </div>
-
-            <!-- TABS & ACTIONS -->
-            <div class="flex items-center gap-3">
-                <a href="scanner.html" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-blue-600/30">
-                    <i class="fa-solid fa-mobile-screen"></i> Ouvrir Scanner Smartphone
-                </a>
-                <button onclick="exportCSV()" class="px-3.5 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 border border-dark-700 text-xs font-bold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel text-emerald-400"></i> Exporter Excel (.csv)
-                </button>
+            <div class="nav-actions">
+                <a href="scanner.html" target="_blank" class="btn btn-primary">📱 Ouvrir Scanner</a>
+                <button onclick="exportCSV()" class="btn btn-secondary">📊 Exporter Excel (.csv)</button>
             </div>
         </div>
     </header>
 
-    <!-- NAVIGATION TABS -->
-    <div class="no-print bg-dark-850 border-b border-dark-700/60 px-6 py-2">
-        <div class="max-w-7xl mx-auto flex gap-2">
-            <button onclick="switchTab('journal')" id="tab-btn-journal" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white flex items-center gap-2">
-                <i class="fa-solid fa-list-check"></i> Pointages du Jour
-            </button>
-            <button onclick="switchTab('matrice')" id="tab-btn-matrice" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2">
-                <i class="fa-solid fa-table-cells"></i> Matrice Mensuelle (31 jours)
-            </button>
-            <button onclick="switchTab('badges')" id="tab-btn-badges" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2">
-                <i class="fa-solid fa-id-card"></i> Badges &amp; QR Codes (68)
-            </button>
+    <!-- TABS -->
+    <div class="tabs-bar no-print">
+        <div class="tabs-wrap">
+            <button onclick="switchTab('journal')" id="tbtn-journal" class="tab-btn active">📋 Pointages du Jour</button>
+            <button onclick="switchTab('matrice')" id="tbtn-matrice" class="tab-btn">📅 Matrice Mensuelle (31 jours)</button>
+            <button onclick="switchTab('badges')" id="tbtn-badges" class="tab-btn">🪪 Badges &amp; QR Codes (68)</button>
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
-
-        <!-- KPI SUMMARY CARDS -->
-        <div class="no-print grid grid-cols-2 md:grid-cols-5 gap-3.5">
-            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
-                <div class="flex items-center justify-between text-slate-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">Effectif Total</span>
-                    <i class="fa-solid fa-users text-blue-400"></i>
-                </div>
-                <div class="text-2xl font-black text-white">68</div>
-                <p class="text-[11px] text-slate-400 mt-1">Ouvriers enregistrés</p>
+    <!-- MAIN -->
+    <main>
+        <!-- KPI SUMMARY -->
+        <div class="kpi-grid no-print">
+            <div class="kpi-card">
+                <div class="kpi-label">Effectif Total</div>
+                <div class="kpi-val" style="color: #fff;">68</div>
+                <div class="kpi-sub">Ouvriers au chantier</div>
             </div>
-
-            <div class="bg-dark-900 border border-emerald-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-emerald-950/20 to-transparent">
-                <div class="flex items-center justify-between text-emerald-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">À l'Heure</span>
-                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                </div>
-                <div id="kpi-heure" class="text-2xl font-black text-emerald-400">0</div>
-                <p class="text-[11px] text-emerald-500/80 mt-1">Pointage 06h00 - 07h30</p>
+            <div class="kpi-card" style="border-color: rgba(16,185,129,0.3);">
+                <div class="kpi-label" style="color: #34d399;">À l'Heure</div>
+                <div id="kpi-heure" class="kpi-val" style="color: #34d399;">0</div>
+                <div class="kpi-sub">06h00 - 07h30</div>
             </div>
-
-            <div class="bg-dark-900 border border-amber-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-amber-950/20 to-transparent">
-                <div class="flex items-center justify-between text-amber-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">En Retard</span>
-                    <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
-                </div>
-                <div id="kpi-retard" class="text-2xl font-black text-amber-400">0</div>
-                <p id="kpi-retard-min" class="text-[11px] text-amber-500/80 mt-1">0 min perdues</p>
+            <div class="kpi-card" style="border-color: rgba(245,158,11,0.3);">
+                <div class="kpi-label" style="color: #fbbf24;">En Retard</div>
+                <div id="kpi-retard" class="kpi-val" style="color: #fbbf24;">0</div>
+                <div id="kpi-retard-min" class="kpi-sub" style="color: #fde68a;">0 min perdues</div>
             </div>
-
-            <div class="bg-dark-900 border border-cyan-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-cyan-950/20 to-transparent">
-                <div class="flex items-center justify-between text-cyan-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">Descentes</span>
-                    <i class="fa-solid fa-arrow-right-from-bracket text-cyan-400"></i>
-                </div>
-                <div id="kpi-descente" class="text-2xl font-black text-cyan-400">0</div>
-                <p class="text-[11px] text-cyan-500/80 mt-1">Sorties validées</p>
+            <div class="kpi-card" style="border-color: rgba(6,182,212,0.3);">
+                <div class="kpi-label" style="color: #38bdf8;">Descentes</div>
+                <div id="kpi-descente" class="kpi-val" style="color: #38bdf8;">0</div>
+                <div class="kpi-sub">Sorties dès 16h00</div>
             </div>
-
-            <div class="bg-dark-900 border border-rose-500/30 rounded-2xl p-4 shadow-xl bg-gradient-to-br from-rose-950/20 to-transparent col-span-2 md:col-span-1">
-                <div class="flex items-center justify-between text-rose-400 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider">Absents</span>
-                    <i class="fa-solid fa-user-xmark text-rose-400"></i>
-                </div>
-                <div id="kpi-absent" class="text-2xl font-black text-rose-400">68</div>
-                <p class="text-[11px] text-rose-500/80 mt-1">Non pointés à ce jour</p>
+            <div class="kpi-card" style="border-color: rgba(239,68,68,0.3);">
+                <div class="kpi-label" style="color: #f87171;">Absents</div>
+                <div id="kpi-absent" class="kpi-val" style="color: #f87171;">68</div>
+                <div class="kpi-sub">Non pointés à ce jour</div>
             </div>
         </div>
 
-        <!-- TAB 1: JOURNAL DU JOUR -->
-        <div id="view-journal" class="space-y-4">
-            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-3 mb-4">
-                    <div class="flex items-center gap-2 w-full md:w-auto">
-                        <input id="search-input" oninput="renderTable()" type="text" placeholder="Filtrer par nom, prénom ou Ag..." class="w-full md:w-72 bg-dark-800 border border-dark-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
-                        <select id="filter-metier" onchange="renderTable()" class="bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
-                            <option value="">Tous les métiers</option>
-                            <option value="Ouvrier">Ouvrier</option>
-                            <option value="Maçon">Chef Maçon</option>
-                            <option value="Ferrailleur">Ferrailleur</option>
-                            <option value="Menuisier">Menuisier</option>
-                            <option value="Bétonnier">Bétonnier</option>
-                            <option value="Briquetier">Briquetier</option>
-                        </select>
-                    </div>
-
-                    <div class="text-xs text-slate-400">
-                        Date : <span id="current-date-badge" class="font-bold text-white"></span>
-                    </div>
+        <!-- TAB 1: JOURNAL -->
+        <section id="view-journal" class="view-section active">
+            <div class="table-card">
+                <div class="table-toolbar no-print">
+                    <input id="search-input" oninput="renderTable()" type="text" placeholder="Rechercher par nom ou Ag..." class="search-input">
+                    <span id="date-label" style="font-size: 12px; color: var(--text-muted); font-weight: 700;"></span>
                 </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-dark-800 text-slate-400 uppercase text-[10px] tracking-wider border-b border-dark-700">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
                             <tr>
-                                <th class="p-3">Matricule</th>
-                                <th class="p-3">Ouvrier</th>
-                                <th class="p-3">Fonction</th>
-                                <th class="p-3">Heure Arrivée</th>
-                                <th class="p-3">Statut Arrivée</th>
-                                <th class="p-3">Heure Descente</th>
-                                <th class="p-3">Temps Travaillé</th>
-                                <th class="p-3 text-right">Actions</th>
+                                <th>Matricule</th>
+                                <th>Nom & Prénoms</th>
+                                <th>Fonction</th>
+                                <th>Arrivée</th>
+                                <th>Statut</th>
+                                <th>Descente</th>
+                                <th>Temps Travail</th>
+                                <th style="text-align: right;">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="table-body" class="divide-y divide-dark-800"></tbody>
+                        <tbody id="table-body"></tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- TAB 2: MATRICE MENSUELLE (31 JOURS) -->
-        <div id="view-matrice" class="hidden space-y-4">
-            <div class="bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl">
-                <div class="flex items-center justify-between mb-4">
+        <!-- TAB 2: MATRICE -->
+        <section id="view-matrice" class="view-section">
+            <div class="table-card">
+                <div class="table-toolbar no-print">
                     <div>
-                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-table-cells text-blue-500"></i> Matrice Mensuelle des Pointages (Identique Google Sheets)
-                        </h2>
-                        <p class="text-xs text-slate-400">P = Présent &bull; R = Retard &bull; D = Descente &bull; A = Absent</p>
+                        <strong style="font-size: 13px;">Matrice Mensuelle Synthétique (31 Jours)</strong>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block;">Identique à votre ancien tableau Google Sheets</span>
                     </div>
-                    <button onclick="exportMatriceCSV()" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-download"></i> Télécharger Matrice Excel
-                    </button>
+                    <button onclick="exportMatriceCSV()" class="btn btn-primary">📥 Télécharger Matrice Excel</button>
                 </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-[11px] whitespace-nowrap">
-                        <thead class="bg-dark-800 text-slate-400 text-[10px] uppercase border-b border-dark-700">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
                             <tr>
-                                <th class="p-2 sticky left-0 bg-dark-800 z-10">Matricule</th>
-                                <th class="p-2 sticky left-14 bg-dark-800 z-10">Nom de l'Ouvrier</th>
-                                <th class="p-2">Métier</th>
-                                <!-- 31 Jours -->
+                                <th style="position: sticky; left: 0; background: #1e293b;">Mat.</th>
+                                <th style="position: sticky; left: 45px; background: #1e293b;">Ouvrier</th>
+                                <th>Métier</th>
                                 <script>
-                                    for(let d=1; d<=31; d++) {
-                                        document.write(`<th class="p-1.5 text-center font-mono">${d}</th>`);
-                                    }
+                                    for(let i=1; i<=31; i++) document.write(`<th style="text-align:center; padding: 6px 4px; font-family: monospace;">${i}</th>`);
                                 </script>
-                                <th class="p-2 text-center bg-dark-750 font-bold text-emerald-400">Total P</th>
-                                <th class="p-2 text-center bg-dark-750 font-bold text-amber-400">Total R</th>
-                                <th class="p-2 text-center bg-dark-750 font-bold text-rose-400">Total A</th>
+                                <th style="text-align: center; color: #34d399;">Total P</th>
+                                <th style="text-align: center; color: #fbbf24;">Total R</th>
+                                <th style="text-align: center; color: #f87171;">Total A</th>
                             </tr>
                         </thead>
-                        <tbody id="matrice-body" class="divide-y divide-dark-800"></tbody>
+                        <tbody id="matrice-body"></tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- TAB 3: BADGES & QR CODES (68 CARTES) -->
-        <div id="view-badges" class="hidden space-y-4">
-            <div class="no-print bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+        <!-- TAB 3: BADGES -->
+        <section id="view-badges" class="view-section">
+            <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div>
-                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-id-card text-blue-500"></i> Impression des 68 Badges Ouvriers
-                    </h2>
-                    <p class="text-xs text-slate-400">Badges vectoriels compatibles avec vos scans Google Forms existants.</p>
+                    <strong style="font-size: 14px;">Impression des 68 Badges QR Code</strong>
+                    <p style="font-size: 11px; color: var(--text-muted);">Compatibles avec vos scans Google Forms existants.</p>
                 </div>
-                <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-blue-600/30">
-                    <i class="fa-solid fa-print"></i> Imprimer Tous les Badges
-                </button>
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimer Tous les Badges</button>
             </div>
-
-            <!-- BADGES GRID -->
-            <div id="badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-        </div>
-
+            <div id="badges-grid" class="badges-grid"></div>
+        </section>
     </main>
 
-    <!-- INLINE VECTOR SVG QR CODE GENERATOR (ZERO DEPENDENCY) -->
-    <script>
-        // Minimal vector QR code generator in pure JS
-        function generateQRCodeSVG(text, size = 110) {
-            // Encode matricule or Google Form URL into a clean SVG QR
-            // Using public QR server SVG or lightweight SVG data
-            const encoded = encodeURIComponent(text);
-            return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=2" alt="QR" class="w-full h-full object-contain" />`;
-        }
-    </script>
-
-    <!-- MAIN APP SCRIPT -->
     <script>
         const ROSTER = [
             ["Ag1","BAZIÉ","Laurent","Ag1 BAZIÉ LAURENT","Ouvrier"],["Ag2","LENGA","Lambert","Ag2 LENGA LAMBERT","Ouvrier"],
@@ -279,22 +258,18 @@
 
         const GOOGLE_FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdoQrCfoN8x5TxD2rgJJwzlw_oWUJmKuaCHDm00tYADJH-98w/formResponse?entry.1849590193=";
 
-        function getTodayKey() {
-            return "arex_pointages_" + new Date().toISOString().split('T')[0];
-        }
-        function getStoredPointages() {
-            return JSON.parse(localStorage.getItem(getTodayKey()) || "{}");
-        }
+        function getTodayKey() { return "arex_pointages_" + new Date().toISOString().split('T')[0]; }
+        function getStoredPointages() { return JSON.parse(localStorage.getItem(getTodayKey()) || "{}"); }
 
-        function switchTab(tab) {
-            ['journal', 'matrice', 'badges'].forEach(t => {
-                document.getElementById('view-' + t).classList.add('hidden');
-                document.getElementById('tab-btn-' + t).className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-dark-800 text-slate-400 hover:text-white flex items-center gap-2";
+        function switchTab(t) {
+            ['journal', 'matrice', 'badges'].forEach(tab => {
+                document.getElementById('view-' + tab).classList.remove('active');
+                document.getElementById('tbtn-' + tab).classList.remove('active');
             });
-            document.getElementById('view-' + tab).classList.remove('hidden');
-            document.getElementById('tab-btn-' + tab).className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white flex items-center gap-2";
-            if (tab === 'badges') renderBadges();
-            if (tab === 'matrice') renderMatrice();
+            document.getElementById('view-' + t).classList.add('active');
+            document.getElementById('tbtn-' + t).classList.add('active');
+            if (t === 'badges') renderBadges();
+            if (t === 'matrice') renderMatrice();
         }
 
         function renderKPIs() {
@@ -317,35 +292,28 @@
 
         function renderTable() {
             const query = (document.getElementById('search-input').value || "").toLowerCase().trim();
-            const filterMetier = document.getElementById('filter-metier').value;
             const pointages = getStoredPointages();
             const tbody = document.getElementById('table-body');
 
-            const filtered = ROSTER.filter(a => {
-                const matchQ = a[0].toLowerCase().includes(query) || a[1].toLowerCase().includes(query) || a[2].toLowerCase().includes(query);
-                const matchM = !filterMetier || a[4].includes(filterMetier);
-                return matchQ && matchM;
-            });
+            const filtered = ROSTER.filter(a => a[0].toLowerCase().includes(query) || a[1].toLowerCase().includes(query) || a[2].toLowerCase().includes(query));
 
             tbody.innerHTML = filtered.map(a => {
                 const p = pointages[a[0]] || null;
                 return `
-                    <tr class="hover:bg-dark-850/60 transition-colors">
-                        <td class="p-3 font-mono font-bold text-cyan-400">${a[0]}</td>
-                        <td class="p-3 font-bold text-white">${a[1]} ${a[2]}</td>
-                        <td class="p-3 text-slate-400">${a[4]}</td>
-                        <td class="p-3 font-mono">${p ? p.heure_arrivee : '<span class="text-slate-600">--:--</span>'}</td>
-                        <td class="p-3">
-                            ${!p ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">Absent</span>' :
-                              p.statut_arrivee === 'A_L_HEURE' ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">À l\'heure</span>' :
-                              `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Retard (+${p.retard_minutes}m)</span>`}
+                    <tr>
+                        <td style="font-family: monospace; font-weight: 800; color: #38bdf8;">${a[0]}</td>
+                        <td style="font-weight: 700; color: #fff;">${a[1]} ${a[2]}</td>
+                        <td style="color: var(--text-muted);">${a[4]}</td>
+                        <td style="font-family: monospace;">${p ? p.heure_arrivee : '<span style="color: #475569;">--:--</span>'}</td>
+                        <td>
+                            ${!p ? '<span class="badge-status badge-a">Absent</span>' :
+                              p.statut_arrivee === 'A_L_HEURE' ? '<span class="badge-status badge-p">À l\'heure</span>' :
+                              `<span class="badge-status badge-r">Retard (+${p.retard_minutes}m)</span>`}
                         </td>
-                        <td class="p-3 font-mono">${p && p.heure_descente ? p.heure_descente : '<span class="text-slate-600">--:--</span>'}</td>
-                        <td class="p-3 font-mono font-semibold text-cyan-300">${p && p.duree_travail ? p.duree_travail : '<span class="text-slate-600">--</span>'}</td>
-                        <td class="p-3 text-right">
-                            <button onclick="quickPointer('${a[0]}')" class="px-2.5 py-1 rounded-lg bg-dark-800 hover:bg-dark-700 text-slate-300 text-[11px] font-semibold border border-dark-700">
-                                <i class="fa-solid fa-pen mr-1"></i> Pointer
-                            </button>
+                        <td style="font-family: monospace;">${p && p.heure_descente ? p.heure_descente : '<span style="color: #475569;">--:--</span>'}</td>
+                        <td style="font-family: monospace; font-weight: 700; color: #7dd3fc;">${p && p.duree_travail ? p.duree_travail : '<span style="color: #475569;">--</span>'}</td>
+                        <td style="text-align: right;">
+                            <button onclick="quickPointer('${a[0]}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Pointer</button>
                         </td>
                     </tr>
                 `;
@@ -400,32 +368,32 @@
                 for (let d = 1; d <= 31; d++) {
                     if (d === todayDay) {
                         if (!p) {
-                            daysHtml += `<td class="p-1 text-center font-bold text-rose-500 bg-rose-950/20">A</td>`;
+                            daysHtml += `<td style="text-align:center; font-weight:800; color: #f87171; background: rgba(239,68,68,0.1);">A</td>`;
                             countA++;
                         } else if (p.statut_arrivee === 'A_L_HEURE') {
-                            daysHtml += `<td class="p-1 text-center font-bold text-emerald-400 bg-emerald-950/30">P</td>`;
+                            daysHtml += `<td style="text-align:center; font-weight:800; color: #34d399; background: rgba(16,185,129,0.15);">P</td>`;
                             countP++;
                         } else {
-                            daysHtml += `<td class="p-1 text-center font-bold text-amber-400 bg-amber-950/30">R</td>`;
+                            daysHtml += `<td style="text-align:center; font-weight:800; color: #fbbf24; background: rgba(245,158,11,0.15);">R</td>`;
                             countR++;
                         }
                     } else if (d < todayDay) {
-                        daysHtml += `<td class="p-1 text-center font-bold text-emerald-400">P</td>`;
+                        daysHtml += `<td style="text-align:center; font-weight:800; color: #34d399;">P</td>`;
                         countP++;
                     } else {
-                        daysHtml += `<td class="p-1 text-center text-slate-600">-</td>`;
+                        daysHtml += `<td style="text-align:center; color: #475569;">-</td>`;
                     }
                 }
 
                 return `
-                    <tr class="hover:bg-dark-850/60">
-                        <td class="p-2 font-mono font-bold text-cyan-400 sticky left-0 bg-dark-900">${a[0]}</td>
-                        <td class="p-2 font-bold text-white sticky left-14 bg-dark-900">${a[1]} ${a[2]}</td>
-                        <td class="p-2 text-slate-400">${a[4]}</td>
+                    <tr>
+                        <td style="font-family: monospace; font-weight: 800; color: #38bdf8; position: sticky; left: 0; background: #0f172a;">${a[0]}</td>
+                        <td style="font-weight: 700; color: #fff; position: sticky; left: 45px; background: #0f172a;">${a[1]} ${a[2]}</td>
+                        <td style="color: var(--text-muted);">${a[4]}</td>
                         ${daysHtml}
-                        <td class="p-2 text-center font-bold text-emerald-400 bg-dark-800">${countP}</td>
-                        <td class="p-2 text-center font-bold text-amber-400 bg-dark-800">${countR}</td>
-                        <td class="p-2 text-center font-bold text-rose-400 bg-dark-800">${countA}</td>
+                        <td style="text-align: center; font-weight: 800; color: #34d399; background: #1e293b;">${countP}</td>
+                        <td style="text-align: center; font-weight: 800; color: #fbbf24; background: #1e293b;">${countR}</td>
+                        <td style="text-align: center; font-weight: 800; color: #f87171; background: #1e293b;">${countA}</td>
                     </tr>
                 `;
             }).join('');
@@ -434,23 +402,18 @@
         function renderBadges() {
             const grid = document.getElementById('badges-grid');
             grid.innerHTML = ROSTER.map(a => {
-                const qrUrl = GOOGLE_FORM_BASE + a[0];
+                const qrUrl = encodeURIComponent(GOOGLE_FORM_BASE + a[0]);
                 return `
-                    <div class="badge-card bg-dark-900 border border-dark-700/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="flex items-center justify-between border-b border-dark-700/60 pb-2 mb-2">
-                            <span class="text-[10px] font-black uppercase text-blue-400 tracking-wider">AREX GÉNIE CIVIL</span>
-                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-dark-800 text-cyan-400 border border-dark-700">${a[0]}</span>
+                    <div class="badge-box">
+                        <div class="badge-head">
+                            <span>AREX GÉNIE CIVIL</span>
+                            <span style="font-family: monospace;">${a[0]}</span>
                         </div>
-                        <div class="w-32 h-32 mx-auto my-2 p-1.5 bg-white rounded-xl shadow-md flex items-center justify-center">
-                            ${generateQRCodeSVG(qrUrl, 120)}
+                        <div class="qr-frame">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${qrUrl}&margin=1" alt="QR" style="width:100%; height:100%; object-fit:contain;" />
                         </div>
-                        <div>
-                            <h3 class="text-sm font-extrabold text-white truncate">${a[1]} ${a[2]}</h3>
-                            <p class="text-xs text-slate-400 font-semibold">${a[4]}</p>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-dark-700/60 text-[9px] text-slate-500 font-mono uppercase">
-                            Scanner pour pointage chantier
-                        </div>
+                        <div style="font-size: 13px; font-weight: 800; color: #fff; margin-top: 4px;">${a[1]} ${a[2]}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${a[4]}</div>
                     </div>
                 `;
             }).join('');
@@ -502,7 +465,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('current-date-badge').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('date-label').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
             renderKPIs();
             renderTable();
         });
