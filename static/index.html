@@ -128,7 +128,8 @@
                 <span id="sync-indicator" class="sync-indicator">☁️ Synchro Cloud : En attente...</span>
                 <button onclick="fetchCloudData(true)" class="btn btn-secondary" title="Recharger les données du Cloud">🔄 Synchroniser</button>
                 <a href="scanner.html" target="_blank" class="btn btn-primary">📱 Ouvrir Scanner Mobile</a>
-                <button onclick="exportDailyWordReport()" class="btn btn-word">📄 Rapport Jour (.doc)</button>
+                <button onclick="exportDailyWordReport()" class="btn btn-word" title="Télécharger le journal du jour en Word">📄 Jour (.doc)</button>
+                <button onclick="exportDailyPDFReport()" class="btn btn-secondary" style="background: rgba(220,38,38,0.2); border-color: rgba(220,38,38,0.4); color: #fca5a5;" title="Imprimer ou enregistrer le journal du jour en PDF">📑 Jour (PDF)</button>
                 <button onclick="exportCSV()" class="btn btn-secondary">📊 Excel (.csv)</button>
             </div>
         </div>
@@ -250,23 +251,40 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <button onclick="exportMonthlyWordReport()" class="btn btn-word" style="font-size: 12px; padding: 9px 16px;">
-                            📄 Télécharger Rapport Word (.doc)
+                        <button onclick="exportMonthlyWordReport()" class="btn btn-word" style="font-size: 12px; padding: 9px 15px;">
+                            📄 Rapport Mensuel Word (.doc)
                         </button>
-                        <button onclick="exportMatriceCSV()" class="btn btn-primary" style="font-size: 12px;">
-                            📥 Télécharger Matrice Excel (.csv)
+                        <button onclick="exportMonthlyPDFReport()" class="btn btn-primary" style="font-size: 12px; padding: 9px 15px; background: #dc2626; border-color: #ef4444;">
+                            📑 Exporter en PDF
+                        </button>
+                        <button onclick="exportMatriceCSV()" class="btn btn-secondary" style="font-size: 12px;">
+                            📥 Matrice Excel (.csv)
                         </button>
                     </div>
                 </div>
 
-                <!-- Monthly KPI Synthesis -->
-                <div id="monthly-summary-bar" style="background: #1e293b; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; font-size: 12px;">
-                    <div>📅 Période : <strong id="m-period" style="color: #38bdf8;">Novembre 2026</strong></div>
-                    <div>👷 Effectif Chantier : <strong style="color: #fff;">68 ouvriers</strong></div>
-                    <div>✅ Présences Cumulées (P) : <strong id="m-total-p" style="color: #34d399;">0</strong></div>
-                    <div>⏱️ Retards Cumulés (R) : <strong id="m-total-r" style="color: #fbbf24;">0</strong></div>
-                    <div>❌ Absences (A) : <strong id="m-total-a" style="color: #f87171;">0</strong></div>
-                    <div>📈 Taux Global Assiduité : <strong id="m-taux" style="color: #38bdf8;">--%</strong></div>
+                <!-- Monthly KPI & Calendar Synthesis -->
+                <div id="monthly-summary-bar" style="background: #1e293b; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; font-size: 12px;">
+                    <div style="background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-dark);">
+                        <div style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700;">Période du Mois</div>
+                        <div id="m-period" style="font-size: 15px; font-weight: 800; color: #38bdf8; margin-top: 2px;">Novembre 2026</div>
+                    </div>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-dark);">
+                        <div style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700;">Jours Ouvrables Référence</div>
+                        <div id="m-working-days" style="font-size: 15px; font-weight: 800; color: #34d399; margin-top: 2px;">25 jours de travail</div>
+                    </div>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-dark);">
+                        <div style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700;">Dimanches (Repos)</div>
+                        <div id="m-sundays" style="font-size: 15px; font-weight: 800; color: #fbbf24; margin-top: 2px;">5 dimanches</div>
+                    </div>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-dark);">
+                        <div style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700;">Effectif Actif (≥ 1 j. trav.)</div>
+                        <div id="m-active-count" style="font-size: 15px; font-weight: 800; color: #38bdf8; margin-top: 2px;">0 ouvrier(s)</div>
+                    </div>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-dark);">
+                        <div style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700;">Taux Moyen Assiduité</div>
+                        <div id="m-taux" style="font-size: 15px; font-weight: 800; color: #a78bfa; margin-top: 2px;">--%</div>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -646,6 +664,18 @@
             pushCloudData();
         }
 
+        // --- STATISTIQUES CALENDRIER & JOURS OUVRABLES (HORS DIMANCHES) ---
+        function getCalendarStats(year, month) {
+            const totalDays = new Date(year, month, 0).getDate();
+            let sundays = 0;
+            for (let d = 1; d <= totalDays; d++) {
+                const dt = new Date(year, month - 1, d);
+                if (dt.getDay() === 0) sundays++; // Dimanche
+            }
+            const workingDays = totalDays - sundays;
+            return { totalDays, sundays, workingDays };
+        }
+
         // --- MATRICE MENSUELLE SYNTHÉTIQUE DYNAMIQUE ---
         function onDateFilterChange() {
             renderMatrice();
@@ -654,26 +684,34 @@
         function renderMatrice() {
             const year = parseInt(document.getElementById('filter-year').value);
             const month = parseInt(document.getElementById('filter-month').value);
-            const daysInMonth = new Date(year, month, 0).getDate();
+            const { totalDays, sundays, workingDays } = getCalendarStats(year, month);
             const monthName = MONTH_NAMES[month - 1];
 
-            // Update Summary Header
-            document.getElementById('m-period').textContent = `${monthName} ${year} (${daysInMonth} jours)`;
+            // Update Summary Header Cards
+            document.getElementById('m-period').textContent = `${monthName} ${year}`;
+            document.getElementById('m-working-days').textContent = `${workingDays} jours de travail`;
+            document.getElementById('m-sundays').textContent = `${sundays} dimanches`;
 
-            // Render Header with exact days
+            // Render Header with exact days and Sunday rest markers
             const theadRow = document.getElementById('matrice-thead-row');
             let headerHtml = `
                 <th style="position: sticky; left: 0; background: #1e293b; z-index: 20;">Mat.</th>
                 <th style="position: sticky; left: 50px; background: #1e293b; z-index: 20; min-width: 150px;">Ouvrier</th>
                 <th style="min-width: 110px;">Corps d'État</th>
             `;
-            for (let d = 1; d <= daysInMonth; d++) {
-                headerHtml += `<th style="text-align: center; padding: 6px 4px; font-family: monospace; font-size: 11px;">${d}</th>`;
+            for (let d = 1; d <= totalDays; d++) {
+                const dt = new Date(year, month - 1, d);
+                const isSunday = (dt.getDay() === 0);
+                if (isSunday) {
+                    headerHtml += `<th style="text-align: center; padding: 4px 2px; font-family: monospace; font-size: 10px; background: #0b1120; color: #fbbf24;" title="Dimanche (Repos)">${d}<div style="font-size: 8px;">Dim</div></th>`;
+                } else {
+                    headerHtml += `<th style="text-align: center; padding: 6px 4px; font-family: monospace; font-size: 11px;">${d}</th>`;
+                }
             }
             headerHtml += `
-                <th style="text-align: center; color: #34d399; background: #1e293b; font-weight: 800;">Total P</th>
-                <th style="text-align: center; color: #fbbf24; background: #1e293b; font-weight: 800;">Total R</th>
-                <th style="text-align: center; color: #f87171; background: #1e293b; font-weight: 800;">Total A</th>
+                <th style="text-align: center; color: #34d399; background: #1e293b; font-weight: 800;">Jours Trav.</th>
+                <th style="text-align: center; color: #fbbf24; background: #1e293b; font-weight: 800;">Retards</th>
+                <th style="text-align: center; color: #f87171; background: #1e293b; font-weight: 800;">Absences</th>
                 <th style="text-align: center; color: #38bdf8; background: #1e293b; font-weight: 800;">% Assiduité</th>
             `;
             theadRow.innerHTML = headerHtml;
@@ -686,13 +724,22 @@
 
             const tbody = document.getElementById('matrice-body');
             let globalP = 0, globalR = 0, globalA = 0;
+            let activeCount = 0;
 
             tbody.innerHTML = ROSTER.map(a => {
                 const p = pointages[a[0]];
                 let daysHtml = "";
                 let countP = 0, countR = 0, countA = 0;
 
-                for (let d = 1; d <= daysInMonth; d++) {
+                for (let d = 1; d <= totalDays; d++) {
+                    const dt = new Date(year, month - 1, d);
+                    const isSunday = (dt.getDay() === 0);
+
+                    if (isSunday) {
+                        daysHtml += `<td style="text-align:center; font-size:10px; color: #64748b; background: #0b1120;">-</td>`;
+                        continue; // Dimanche non comptabilisé en absence
+                    }
+
                     if (isCurrentMonth) {
                         if (d === currentDay) {
                             if (!p) {
@@ -706,19 +753,15 @@
                                 countR++;
                             }
                         } else if (d < currentDay) {
-                            // Historical days
                             daysHtml += `<td style="text-align:center; font-weight:700; color: #34d399;">P</td>`;
                             countP++;
                         } else {
-                            // Future days
                             daysHtml += `<td style="text-align:center; color: #475569;">-</td>`;
                         }
                     } else if (year < todayDt.getFullYear() || (year === todayDt.getFullYear() && month < (todayDt.getMonth() + 1))) {
-                        // Past Month: all evaluated
                         daysHtml += `<td style="text-align:center; font-weight:700; color: #34d399;">P</td>`;
                         countP++;
                     } else {
-                        // Future Month
                         daysHtml += `<td style="text-align:center; color: #475569;">-</td>`;
                     }
                 }
@@ -727,8 +770,11 @@
                 globalR += countR;
                 globalA += countA;
 
+                const daysWorked = countP + countR;
+                if (daysWorked > 0) activeCount++;
+
                 const evaluatedDays = countP + countR + countA;
-                const tauxAgent = evaluatedDays > 0 ? Math.round(((countP + countR) / evaluatedDays) * 100) : 100;
+                const tauxAgent = evaluatedDays > 0 ? Math.round((daysWorked / evaluatedDays) * 100) : 0;
 
                 return `
                     <tr>
@@ -736,7 +782,7 @@
                         <td style="font-weight: 700; color: #fff; position: sticky; left: 50px; background: #0f172a; z-index: 5;">${a[1]} ${a[2]}</td>
                         <td style="color: var(--text-muted); font-size: 11px;">${a[4]}</td>
                         ${daysHtml}
-                        <td style="text-align: center; font-weight: 800; color: #34d399; background: #1e293b;">${countP}</td>
+                        <td style="text-align: center; font-weight: 800; color: #34d399; background: #1e293b;">${daysWorked}</td>
                         <td style="text-align: center; font-weight: 800; color: #fbbf24; background: #1e293b;">${countR}</td>
                         <td style="text-align: center; font-weight: 800; color: #f87171; background: #1e293b;">${countA}</td>
                         <td style="text-align: center; font-weight: 800; color: #38bdf8; background: #1e293b;">${tauxAgent}%</td>
@@ -744,60 +790,128 @@
                 `;
             }).join('');
 
-            // Update bar counts
-            document.getElementById('m-total-p').textContent = globalP;
-            document.getElementById('m-total-r').textContent = globalR;
-            document.getElementById('m-total-a').textContent = globalA;
+            document.getElementById('m-active-count').textContent = `${activeCount} ouvrier(s)`;
             const totalEval = globalP + globalR + globalA;
-            const globalTaux = totalEval > 0 ? Math.round(((globalP + globalR) / totalEval) * 100) : 100;
+            const globalTaux = totalEval > 0 ? Math.round(((globalP + globalR) / totalEval) * 100) : 0;
             document.getElementById('m-taux').textContent = `${globalTaux}%`;
         }
 
-        // --- EXPORT OFFICIEL EN DOCUMENT MICROSOFT WORD (.DOC) ---
-        function exportMonthlyWordReport() {
-            const year = parseInt(document.getElementById('filter-year').value);
-            const month = parseInt(document.getElementById('filter-month').value);
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const monthName = MONTH_NAMES[month - 1];
-            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        // --- CALCUL DES TRAVAILLEURS POUR LE RAPPORT MENSUEL ---
+        function getMonthlyWorkersData(year, month) {
+            const { totalDays, sundays, workingDays } = getCalendarStats(year, month);
+            const todayDt = new Date();
+            const isCurrentMonth = (todayDt.getFullYear() === year && (todayDt.getMonth() + 1) === month);
+            const currentDay = todayDt.getDate();
             const pointages = getStoredPointages();
 
-            // Calculate summaries
-            let totalPresences = 0, totalRetards = 0, totalAbsences = 0;
-            const rowsHtml = ROSTER.map((a, idx) => {
-                const p = pointages[a[0]];
-                let pCount = 22, rCount = 0, aCount = 0;
-                if (p) {
-                    if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') rCount = 1;
+            // Collecter les journées enregistrées pour ce mois
+            const monthPrefix = `arex_pointages_${year}-${String(month).padStart(2, '0')}`;
+            const storedDays = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(monthPrefix)) {
+                    try { storedDays[k] = JSON.parse(localStorage.getItem(k)); } catch(e) {}
                 }
-                totalPresences += pCount;
-                totalRetards += rCount;
-                totalAbsences += aCount;
-                const taux = Math.round(((pCount) / (pCount + aCount || 1)) * 100);
+            }
+            if (isCurrentMonth) {
+                storedDays[getTodayKey()] = pointages;
+            }
 
-                return `
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
-                        <td style="text-align: center; font-family: monospace; font-weight: bold; color: #1e3a8a;">${a[0]}</td>
-                        <td style="font-weight: bold;">${a[1]} ${a[2]}</td>
-                        <td>${a[4]}</td>
-                        <td style="text-align: center; font-weight: bold; color: #15803d;">${pCount}</td>
-                        <td style="text-align: center; font-weight: bold; color: #b45309;">${rCount}</td>
-                        <td style="text-align: center; font-weight: bold; color: #b91c1c;">${aCount}</td>
-                        <td style="text-align: center;">${pCount * 8}h00</td>
-                        <td style="text-align: center; font-weight: bold;">${taux}%</td>
-                        <td style="font-size: 9pt;">${rCount === 0 ? 'Assidu / Exemplaire' : 'Conforme avec retards'}</td>
-                    </tr>
-                `;
-            }).join('');
+            const recordedKeys = Object.keys(storedDays);
 
-            const tauxGlobal = Math.round((totalPresences / (totalPresences + totalAbsences || 1)) * 100);
+            const allWorkers = ROSTER.map(agent => {
+                const mat = agent[0];
+                let daysWorked = 0;
+                let lates = 0;
 
-            const docContent = `
-            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head>
-                <meta charset="utf-8">
-                <title>Rapport Mensuel de Pointage AREX - ${monthName} ${year}</title>
+                if (recordedKeys.length > 0) {
+                    recordedKeys.forEach(k => {
+                        const datePart = k.replace('arex_pointages_', '');
+                        const dt = new Date(datePart);
+                        if (dt.getDay() === 0) return; // Les dimanches ne comptent pas comme travail
+
+                        const dayData = storedDays[k] || {};
+                        const p = dayData[mat];
+                        if (p && p.heure_arrivee) {
+                            daysWorked++;
+                            if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') {
+                                lates++;
+                            }
+                        }
+                    });
+                } else if (isCurrentMonth) {
+                    const p = pointages[mat];
+                    if (p && p.heure_arrivee) {
+                        daysWorked = 1;
+                        if (p.statut_arrivee === 'RETARD' || p.statut_arrivee === 'HORS_DELAI') lates = 1;
+                    }
+                }
+
+                const matNum = parseInt(mat.replace('Ag', '')) || 0;
+                const pct = workingDays > 0 ? Math.min(100, Math.round((daysWorked / workingDays) * 100)) : 0;
+
+                return {
+                    matricule: mat,
+                    matriculeNum: matNum,
+                    nom: agent[1],
+                    prenom: agent[2],
+                    nomComplet: agent[1] + " " + agent[2],
+                    fonction: agent[4],
+                    daysWorked: daysWorked,
+                    lates: lates,
+                    pct: pct
+                };
+            });
+
+            // 1. FILTRE : Retenir UNIQUEMENT ceux qui ont travaillé au moins 1 jour
+            let activeWorkers = allWorkers.filter(w => w.daysWorked >= 1);
+
+            // 2. TRI : Du plus grand nombre de jours travaillés au plus petit
+            activeWorkers.sort((a, b) => {
+                if (b.daysWorked !== a.daysWorked) {
+                    return b.daysWorked - a.daysWorked;
+                }
+                return a.matriculeNum - b.matriculeNum;
+            });
+
+            return {
+                activeWorkers,
+                totalEnrolled: ROSTER.length,
+                totalDays,
+                sundays,
+                workingDays,
+                year,
+                month,
+                monthName: MONTH_NAMES[month - 1]
+            };
+        }
+
+        // --- GÉNÉRATEUR DU CONTENU HTML DU RAPPORT (ÉPURÉ & MINUTIEUX) ---
+        function buildReportHtml(data, format = 'word') {
+            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            const rowsHtml = data.activeWorkers.length > 0 ? data.activeWorkers.map((w, idx) => `
+                <tr>
+                    <td style="text-align: center; font-weight: bold; width: 35px; border: 1px solid #cbd5e1; padding: 6px;">${idx + 1}</td>
+                    <td style="text-align: center; font-family: monospace; font-weight: bold; color: #1e3a8a; width: 60px; border: 1px solid #cbd5e1; padding: 6px;">${w.matricule}</td>
+                    <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px; color: #0f172a;">${w.nomComplet}</td>
+                    <td style="color: #475569; border: 1px solid #cbd5e1; padding: 6px;">${w.fonction}</td>
+                    <td style="text-align: center; font-weight: bold; color: #15803d; font-size: 11pt; border: 1px solid #cbd5e1; padding: 6px;">${w.daysWorked} jour(s)</td>
+                    <td style="text-align: center; color: ${w.lates > 0 ? '#b45309' : '#64748b'}; border: 1px solid #cbd5e1; padding: 6px;">${w.lates > 0 ? w.lates + ' retard(s)' : '0'}</td>
+                    <td style="text-align: center; font-weight: bold; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 6px;">${w.pct}%</td>
+                    <td style="width: 100px; border: 1px solid #cbd5e1; padding: 6px;"></td>
+                </tr>
+            `).join('') : `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 25px; color: #64748b; font-style: italic; border: 1px solid #cbd5e1;">
+                        Aucun ouvrier n'a encore enregistré de jour travaillé pour le mois de ${data.monthName} ${data.year}.<br>
+                        Dès qu'un ouvrier est scanné sur le chantier, il apparaîtra automatiquement ici classé par nombre de jours travaillés.
+                    </td>
+                </tr>
+            `;
+
+            const isWord = (format === 'word');
+            const xmlWord = isWord ? `
                 <!--[if gte mso 9]>
                 <xml>
                     <w:WordDocument>
@@ -807,108 +921,89 @@
                     </w:WordDocument>
                 </xml>
                 <![endif]-->
+            ` : '';
+
+            const printToolbar = (!isWord) ? `
+                <div class="no-print" style="background: #1e293b; color: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <div style="font-size: 13px; font-weight: bold;">📑 Aperçu du Rapport &bull; Prêt pour Enregistrement PDF</div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">🖨️ Enregistrer en PDF / Imprimer</button>
+                        <button onclick="window.close()" style="background: #475569; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Fermer</button>
+                    </div>
+                </div>
+            ` : '';
+
+            return `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>Rapport Mensuel des Jours Travaillés - AREX BTP - ${data.monthName} ${data.year}</title>
+                ${xmlWord}
                 <style>
                     @page Section1 {
                         size: 21cm 29.7cm;
                         margin: 1.5cm 1.5cm 1.5cm 1.5cm;
-                        mso-header-margin: 36pt;
-                        mso-footer-margin: 36pt;
                     }
                     div.Section1 { page: Section1; }
-                    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 10pt; color: #0f172a; line-height: 1.3; }
-                    .header-table { width: 100%; border: none; margin-bottom: 12pt; border-bottom: 2px solid #1e3a8a; padding-bottom: 8pt; }
-                    .title-h1 { font-size: 16pt; font-weight: bold; color: #1e3a8a; text-align: center; text-transform: uppercase; margin: 4pt 0; }
-                    .title-sub { font-size: 11pt; font-weight: normal; color: #475569; text-align: center; margin-bottom: 14pt; }
-                    .kpi-table { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
-                    .kpi-table td { border: 1px solid #cbd5e1; padding: 8pt; background: #f8fafc; text-align: center; vertical-align: middle; }
-                    .kpi-title { font-size: 9pt; font-weight: bold; color: #475569; text-transform: uppercase; }
-                    .kpi-number { font-size: 16pt; font-weight: bold; color: #1e3a8a; margin-top: 2pt; }
-                    table.data-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 8pt; }
-                    table.data-table th { background-color: #1e3a8a; color: #ffffff; padding: 6pt 4pt; border: 1px solid #94a3b8; font-weight: bold; text-align: left; }
-                    table.data-table td { padding: 4.5pt 4pt; border: 1px solid #cbd5e1; vertical-align: middle; }
-                    table.data-table tr:nth-child(even) { background-color: #f1f5f9; }
-                    .sign-table { width: 100%; border-collapse: collapse; margin-top: 25pt; page-break-inside: avoid; }
-                    .sign-table td { border: 1px solid #94a3b8; width: 33.33%; height: 95pt; vertical-align: top; padding: 8pt; font-size: 9pt; background: #fafafa; }
-                    .notice-box { background: #eff6ff; border-left: 4px solid #2563eb; padding: 8pt; margin: 10pt 0; font-size: 8.5pt; color: #1e3a8a; }
+                    body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #0f172a; line-height: 1.35; margin: 0; padding: 15px; }
+                    table { border-collapse: collapse; width: 100%; font-size: 9.5pt; }
+                    th { background-color: #1e3a8a; color: #ffffff; padding: 7px 6px; border: 1px solid #94a3b8; font-weight: bold; text-align: left; }
+                    tr:nth-child(even) { background-color: #f8fafc; }
+                    @media print {
+                        .no-print { display: none !important; }
+                        body { padding: 0 !important; background: #fff !important; }
+                        @page { size: A4 portrait; margin: 1.2cm; }
+                    }
                 </style>
             </head>
             <body>
                 <div class="Section1">
-                    <!-- ENTÊTE ENTREPRISE -->
-                    <table class="header-table">
-                        <tr>
-                            <td style="width: 60%; vertical-align: top;">
-                                <strong style="font-size: 13pt; color: #1e3a8a;">ENTREPRISE AREX &bull; BTP &amp; GÉNIE CIVIL</strong><br>
-                                <span style="font-size: 9pt; color: #475569;">Direction des Ressources Humaines &bull; Gestion des Chantiers</span><br>
-                                <span style="font-size: 9pt; color: #475569;">Chantier Principal de Bobo-Dioulasso, Burkina Faso</span>
-                            </td>
-                            <td style="width: 40%; text-align: right; vertical-align: top; font-size: 9pt; color: #475569;">
-                                <strong>Date d'Édition :</strong> ${dateStr}<br>
-                                <strong>Réf :</strong> AREX-RH-${year}-${String(month).padStart(2,'0')}<br>
-                                <strong>Statut :</strong> <span style="color: #15803d; font-weight: bold;">Document Officiel</span>
-                            </td>
-                        </tr>
-                    </table>
+                    ${printToolbar}
 
-                    <div class="title-h1">Rapport Mensuel de Pointage et d'Assiduité</div>
-                    <div class="title-sub">Période : Mois de <strong>${monthName} ${year}</strong> &bull; Effectif Opérationnel : <strong>68 Ouvriers</strong></div>
-
-                    <!-- INDICATEURS CLÉS DU MOIS -->
-                    <table class="kpi-table">
-                        <tr>
-                            <td>
-                                <div class="kpi-title">Effectif Enrôlé</div>
-                                <div class="kpi-number">68</div>
-                                <div style="font-size: 8pt; color: #64748b;">Ouvriers BTP</div>
-                            </td>
-                            <td>
-                                <div class="kpi-title">Présences Cumulées (P)</div>
-                                <div class="kpi-number" style="color: #15803d;">${totalPresences}</div>
-                                <div style="font-size: 8pt; color: #64748b;">Journées validées</div>
-                            </td>
-                            <td>
-                                <div class="kpi-title">Retards Constatés (R)</div>
-                                <div class="kpi-number" style="color: #b45309;">${totalRetards}</div>
-                                <div style="font-size: 8pt; color: #64748b;">Arrivées 07h30-09h00</div>
-                            </td>
-                            <td>
-                                <div class="kpi-title">Absences (A)</div>
-                                <div class="kpi-number" style="color: #b91c1c;">${totalAbsences}</div>
-                                <div style="font-size: 8pt; color: #64748b;">Non justifiées</div>
-                            </td>
-                            <td>
-                                <div class="kpi-title">Taux Assiduité</div>
-                                <div class="kpi-number" style="color: #0284c7;">${tauxGlobal}%</div>
-                                <div style="font-size: 8pt; color: #64748b;">Conformité chantier</div>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <div class="notice-box">
-                        <strong>Rappel des Plages Horaires Réglementaires du Chantier :</strong><br>
-                        &bull; <strong>06h00 - 07h30 :</strong> Arrivée Normale (Pointage automatique validé à l'heure).<br>
-                        &bull; <strong>07h30 - 09h00 :</strong> Tolérance Retard (Calcul automatique des minutes de retard).<br>
-                        &bull; <strong>Après 09h00 :</strong> Hors Délai (Accès chantier assujetti à la décision formelle de la Direction RH).<br>
-                        &bull; <strong>Dès 16h00 :</strong> Pointage de Descente obligatoire avec calcul du temps effectif de travail.
+                    <!-- EN-TÊTE OFFICIEL BTP -->
+                    <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 14px;">
+                        <div style="font-size: 16pt; font-weight: bold; color: #1e3a8a; letter-spacing: 0.5px;">ENTREPRISE AREX &bull; BTP &amp; GÉNIE CIVIL</div>
+                        <div style="font-size: 9.5pt; color: #475569; margin-top: 2px;">Direction des Ressources Humaines &bull; Chantier de Bobo-Dioulasso, Burkina Faso</div>
+                        <div style="margin-top: 10px; font-size: 13pt; font-weight: bold; color: #0f172a; text-transform: uppercase;">
+                            Rapport Mensuel des Jours Travaillés &bull; ${data.monthName.toUpperCase()} ${data.year}
+                        </div>
+                        <div style="font-size: 9pt; color: #64748b; margin-top: 3px;">Date d'édition : ${dateStr}</div>
                     </div>
 
-                    <!-- TABLEAU NOMINATIF DES 68 OUVRIERS -->
-                    <h3 style="font-size: 11pt; color: #1e3a8a; margin-top: 14pt; margin-bottom: 4pt; text-transform: uppercase;">
-                        Registre Nominatif d'Assiduité des 68 Ouvriers
-                    </h3>
-                    <table class="data-table">
+                    <!-- CARTOUCHE DE SYNTHÈSE (JOURS OUVRABLES & REPOS) -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
+                        <tr>
+                            <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; width: 25%; text-align: center;">
+                                <div style="font-size: 8pt; color: #64748b; text-transform: uppercase; font-weight: bold;">Jours du Mois</div>
+                                <div style="font-size: 15pt; font-weight: bold; color: #1e3a8a; margin-top: 2px;">${data.totalDays} jours</div>
+                            </td>
+                            <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; width: 25%; text-align: center;">
+                                <div style="font-size: 8pt; color: #64748b; text-transform: uppercase; font-weight: bold;">Dimanches (Repos)</div>
+                                <div style="font-size: 15pt; font-weight: bold; color: #b45309; margin-top: 2px;">${data.sundays} dimanches</div>
+                            </td>
+                            <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; width: 25%; text-align: center;">
+                                <div style="font-size: 8pt; color: #64748b; text-transform: uppercase; font-weight: bold;">Jours Ouvrables Référence</div>
+                                <div style="font-size: 15pt; font-weight: bold; color: #15803d; margin-top: 2px;">${data.workingDays} jours de travail</div>
+                            </td>
+                            <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; width: 25%; text-align: center;">
+                                <div style="font-size: 8pt; color: #64748b; text-transform: uppercase; font-weight: bold;">Effectif Actif Ayant Travaillé</div>
+                                <div style="font-size: 15pt; font-weight: bold; color: #0284c7; margin-top: 2px;">${data.activeWorkers.length} ouvriers</div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- TABLEAU DES TRAVAILLEURS CLASSE PAR NOMBRE DE JOURS DÉCROISSANT -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                         <thead>
                             <tr>
-                                <th style="width: 25pt; text-align: center;">N°</th>
-                                <th style="width: 35pt; text-align: center;">Mat.</th>
+                                <th style="width: 35px; text-align: center;">N°</th>
+                                <th style="width: 60px; text-align: center;">Mat.</th>
                                 <th>Nom &amp; Prénoms</th>
-                                <th>Corps d'État / Métier</th>
-                                <th style="width: 35pt; text-align: center;">P</th>
-                                <th style="width: 35pt; text-align: center;">R</th>
-                                <th style="width: 35pt; text-align: center;">A</th>
-                                <th style="width: 45pt; text-align: center;">Heures</th>
-                                <th style="width: 45pt; text-align: center;">% Assid.</th>
-                                <th style="width: 100pt;">Appréciation</th>
+                                <th>Corps d'État / Fonction</th>
+                                <th style="width: 90px; text-align: center;">Jours Travaillés</th>
+                                <th style="width: 80px; text-align: center;">Retards</th>
+                                <th style="width: 80px; text-align: center;">Taux Assid.</th>
+                                <th style="width: 100px; text-align: center;">Visa / Émargement</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -917,22 +1012,22 @@
                     </table>
 
                     <!-- CADRE DES SIGNATURES OFFICIELLES -->
-                    <table class="sign-table">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 30px; page-break-inside: avoid;">
                         <tr>
-                            <td>
-                                <strong>1. Le Responsable HSE / Chantier :</strong><br>
-                                <span style="font-size: 8pt; color: #64748b;">Attestation de conformité des scans terrain</span><br><br><br>
+                            <td style="border: 1px solid #94a3b8; width: 33.33%; height: 95px; vertical-align: top; padding: 8px; font-size: 9pt; background: #fafafa;">
+                                <strong style="color: #1e3a8a;">1. Le Chef de Chantier :</strong><br>
+                                <span style="font-size: 8pt; color: #64748b;">Attestation des présences effectives terrain</span><br><br><br>
                                 Date et Signature :
                             </td>
-                            <td>
-                                <strong>2. Le Conducteur des Travaux :</strong><br>
-                                <span style="font-size: 8pt; color: #64748b;">Validation des heures et avancement</span><br><br><br>
+                            <td style="border: 1px solid #94a3b8; width: 33.33%; height: 95px; vertical-align: top; padding: 8px; font-size: 9pt; background: #fafafa;">
+                                <strong style="color: #1e3a8a;">2. Le Conducteur des Travaux :</strong><br>
+                                <span style="font-size: 8pt; color: #64748b;">Vérification technique et conformité</span><br><br><br>
                                 Date et Signature :
                             </td>
-                            <td>
-                                <strong>3. La Direction Générale / DRH :</strong><br>
-                                <span style="font-size: 8pt; color: #64748b;">Approbation pour liquidation des salaires</span><br><br><br>
-                                Mention : <em>"Vu et Approuvé"</em> &bull; Cachet :
+                            <td style="border: 1px solid #94a3b8; width: 33.33%; height: 95px; vertical-align: top; padding: 8px; font-size: 9pt; background: #fafafa;">
+                                <strong style="color: #1e3a8a;">3. Direction RH &amp; Direction Générale :</strong><br>
+                                <span style="font-size: 8pt; color: #64748b;">Bon pour liquidation &amp; paiement des salaires</span><br><br><br>
+                                Date et Cachet :
                             </td>
                         </tr>
                     </table>
@@ -940,14 +1035,43 @@
             </body>
             </html>
             `;
+        }
 
-            const blob = new Blob(['\ufeff' + docContent], { type: 'application/msword;charset=utf-8;' });
+        // --- EXPORT EN DOCUMENT MICROSOFT WORD (.DOC) ---
+        function exportMonthlyWordReport() {
+            const year = parseInt(document.getElementById('filter-year').value);
+            const month = parseInt(document.getElementById('filter-month').value);
+            const data = getMonthlyWorkersData(year, month);
+            const html = buildReportHtml(data, 'word');
+
+            const blob = new Blob(['\ufeff' + html], { type: 'application/msword;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `Rapport_Pointage_AREX_${monthName}_${year}.doc`);
+            link.setAttribute("download", `Rapport_AREX_${data.monthName}_${year}.doc`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // --- EXPORT EN FORMAT PDF ---
+        function exportMonthlyPDFReport() {
+            const year = parseInt(document.getElementById('filter-year').value);
+            const month = parseInt(document.getElementById('filter-month').value);
+            const data = getMonthlyWorkersData(year, month);
+            const html = buildReportHtml(data, 'pdf');
+
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert("Veuillez autoriser les fenêtres pop-up dans votre navigateur pour afficher et enregistrer le PDF.");
+                return;
+            }
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            setTimeout(() => {
+                win.print();
+            }, 500);
         }
 
         // --- RAPPORT JOURNALIER WORD (.DOC) ---
@@ -974,14 +1098,14 @@
 
                 return `
                     <tr>
-                        <td style="text-align: center;">${idx + 1}</td>
-                        <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${a[0]}</td>
-                        <td style="font-weight: bold;">${a[1]} ${a[2]}</td>
-                        <td>${a[4]}</td>
-                        <td style="text-align: center;">${arrStr}</td>
-                        <td style="text-align: center; font-weight: bold;">${statutStr}</td>
-                        <td style="text-align: center;">${descStr}</td>
-                        <td style="text-align: center;">${durStr}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${idx + 1}</td>
+                        <td style="text-align: center; font-family: monospace; font-weight: bold; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 5px;">${a[0]}</td>
+                        <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 5px;">${a[1]} ${a[2]}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 5px;">${a[4]}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${arrStr}</td>
+                        <td style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1; padding: 5px;">${statutStr}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${descStr}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${durStr}</td>
                     </tr>
                 `;
             }).join('');
@@ -992,26 +1116,28 @@
                 <meta charset="utf-8">
                 <title>Rapport Journalier Pointage AREX - ${todayIso}</title>
                 <style>
-                    body { font-family: 'Calibri', sans-serif; font-size: 10pt; color: #0f172a; }
+                    body { font-family: 'Calibri', sans-serif; font-size: 10pt; color: #0f172a; margin: 15px; }
                     table { width: 100%; border-collapse: collapse; font-size: 9pt; }
                     th { background: #1e3a8a; color: #fff; padding: 6pt; border: 1px solid #94a3b8; }
-                    td { padding: 4.5pt; border: 1px solid #cbd5e1; }
+                    td { padding: 5pt; border: 1px solid #cbd5e1; }
                 </style>
             </head>
             <body>
-                <h2 style="color: #1e3a8a; text-transform: uppercase;">AREX BTP &bull; Rapport Journalier de Pointage Chantier</h2>
-                <p>Date : <strong>${dateStr}</strong> &bull; Bobo-Dioulasso, Burkina Faso</p>
+                <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 12px;">
+                    <div style="font-size: 14pt; font-weight: bold; color: #1e3a8a;">AREX BTP &bull; RAPPORT JOURNALIER DU CHANTIER</div>
+                    <div style="font-size: 10pt; color: #475569;">Date : <strong>${dateStr}</strong> &bull; Bobo-Dioulasso, Burkina Faso</div>
+                </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>N°</th>
-                            <th>Mat.</th>
+                            <th style="width: 30px;">N°</th>
+                            <th style="width: 50px;">Mat.</th>
                             <th>Nom &amp; Prénoms</th>
                             <th>Fonction</th>
                             <th>Arrivée</th>
                             <th>Statut</th>
                             <th>Descente</th>
-                            <th>Durée</th>
+                            <th>Temps Effectif</th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
@@ -1028,6 +1154,104 @@
             link.click();
             document.body.removeChild(link);
         }
+
+        // --- RAPPORT JOURNALIER EN PDF ---
+        function exportDailyPDFReport() {
+            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const todayIso = new Date().toISOString().split('T')[0];
+            const pointages = getStoredPointages();
+
+            const rowsHtml = ROSTER.map((a, idx) => {
+                const p = pointages[a[0]];
+                let statutStr = "ABSENT";
+                let arrStr = "--:--";
+                let descStr = "--:--";
+                let durStr = "--";
+
+                if (p) {
+                    arrStr = p.heure_arrivee || "--:--";
+                    descStr = p.heure_descente || "--:--";
+                    durStr = p.duree_travail || "--";
+                    if (p.statut_arrivee === 'A_L_HEURE') statutStr = "À L'HEURE";
+                    else if (p.statut_arrivee === 'RETARD') statutStr = `RETARD (+${p.retard_minutes}m)`;
+                    else if (p.statut_arrivee === 'HORS_DELAI') statutStr = `HORS DÉLAI (+${p.retard_minutes}m)`;
+                }
+
+                return `
+                    <tr>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${idx + 1}</td>
+                        <td style="text-align: center; font-family: monospace; font-weight: bold; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 5px;">${a[0]}</td>
+                        <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 5px;">${a[1]} ${a[2]}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 5px;">${a[4]}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${arrStr}</td>
+                        <td style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1; padding: 5px;">${statutStr}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${descStr}</td>
+                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${durStr}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const html = `
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Rapport Journalier Pointage AREX - ${todayIso}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 9.5pt; color: #0f172a; margin: 0; padding: 15px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+                    th { background: #1e3a8a; color: #fff; padding: 6pt; border: 1px solid #94a3b8; }
+                    td { padding: 4.5pt; border: 1px solid #cbd5e1; }
+                    tr:nth-child(even) { background-color: #f8fafc; }
+                    @media print {
+                        .no-print { display: none !important; }
+                        body { padding: 0 !important; }
+                        @page { size: A4 portrait; margin: 1cm; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="background: #1e293b; color: #fff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-radius: 6px;">
+                    <span style="font-weight: bold;">Rapport Journalier BTP &bull; Prêt pour PDF</span>
+                    <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer;">🖨️ Enregistrer en PDF</button>
+                </div>
+                <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 12px;">
+                    <div style="font-size: 14pt; font-weight: bold; color: #1e3a8a;">AREX BTP &bull; RAPPORT JOURNALIER DU CHANTIER</div>
+                    <div style="font-size: 10pt; color: #475569;">Date : <strong>${dateStr}</strong> &bull; Bobo-Dioulasso, Burkina Faso</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;">N°</th>
+                            <th style="width: 50px;">Mat.</th>
+                            <th>Nom &amp; Prénoms</th>
+                            <th>Fonction</th>
+                            <th>Arrivée</th>
+                            <th>Statut</th>
+                            <th>Descente</th>
+                            <th>Temps Effectif</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </body>
+            </html>
+            `;
+
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert("Veuillez autoriser les fenêtres pop-up dans votre navigateur pour le PDF.");
+                return;
+            }
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            setTimeout(() => {
+                win.print();
+            }, 500);
+        }
+
+
 
         // --- BADGES & QR CODES ---
         function renderBadges() {
